@@ -23,7 +23,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         Log.d("smhz","Starting the program");
         boardsDiscover brdDiscover = new boardsDiscover(getApplicationContext(),mHandler);
-        brdDiscover.getBoardsList(1353,"", "");
+        brdDiscover.execute(1352,"", "");
     }
 
 
@@ -58,10 +58,13 @@ public class MainActivity extends ActionBarActivity {
                 case constants.MESSAGE_NEW_BOARD:
                     JSONObject jObjectData = (JSONObject) msg.obj;
                     try {
-                        Log.i("smhz","Found board: " + jObjectData.getString("ip_addr"));
+                        Log.i("smhz","Found board: " + jObjectData.getString("ip_addr") +", id: " + jObjectData.getString("board_id") +", type: " + (jObjectData.get("board_type")==constants.BOARD_TYPE.LOCAL?"local":"remote"));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                    break;
+                case constants.MESSAGE_DISCOVERY_FINISHED:
+                    Log.i("smhz","Finishing boards discovery");
                     break;
 
             }
