@@ -11,6 +11,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+
+import ru.wo0t.smarthouse.engine.board;
 import ru.wo0t.smarthouse.common.constants;
 
 /**
@@ -102,7 +104,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Void> {
                 DatagramPacket pkt = new DatagramPacket(msg.getBytes(), msg.length(),local, mPort);
 
                 mSocket.send(pkt);
-                Log.d("smhz", "Send discovery msg: "+msg + " to "+ local.toString() + ":" + mPort);
+                Log.d("smhz", "Send discovery msg: "+msg + " to "+ local.getHostAddress() + ":" + mPort);
                 final int msg_max_size = 1500;
                 byte[] buf = new byte[msg_max_size];
                 pkt = new DatagramPacket(buf, msg_max_size);
@@ -113,8 +115,8 @@ public class boardsDiscover extends AsyncTask<Object, Void, Void> {
                         String reply = new String(buf,0,pkt.getLength());
                         JSONObject jObjectData = new JSONObject(reply);
                         if (!jObjectData.getString("id").equals(constants.BOARD_KEYWORD)) continue;    // if non-board response - continue receiving...
-                        jObjectData.put("ip_addr",pkt.getAddress());                // put board ip addr
-                        jObjectData.put("board_type",constants.BOARD_TYPE.LOCAL);   // put board type LOCAL
+                        jObjectData.put("ip_addr",pkt.getAddress().getHostAddress());                 // put board ip addr
+                        jObjectData.put("board_type", board.BOARD_TYPE.LOCAL);                  // put board type LOCAL
 
                         mHandler.obtainMessage(constants.MESSAGE_NEW_BOARD,jObjectData).sendToTarget();
                     }

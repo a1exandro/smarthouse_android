@@ -2,7 +2,6 @@ package ru.wo0t.smarthouse;
 
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +11,8 @@ import android.view.MenuItem;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import ru.wo0t.smarthouse.engine.LocalBoard;
+import ru.wo0t.smarthouse.engine.board;
 import ru.wo0t.smarthouse.common.constants;
 import ru.wo0t.smarthouse.net.boardsDiscover;
 
@@ -23,7 +24,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         Log.d("smhz","Starting the program");
         boardsDiscover brdDiscover = new boardsDiscover(getApplicationContext(),mHandler);
-        brdDiscover.execute(1352,"", "");
+        brdDiscover.execute(1352, "", "");
     }
 
 
@@ -58,7 +59,10 @@ public class MainActivity extends ActionBarActivity {
                 case constants.MESSAGE_NEW_BOARD:
                     JSONObject jObjectData = (JSONObject) msg.obj;
                     try {
-                        Log.i("smhz","Found board: " + jObjectData.getString("ip_addr") +", id: " + jObjectData.getString("board_id") +", type: " + (jObjectData.get("board_type")==constants.BOARD_TYPE.LOCAL?"local":"remote"));
+                        Log.i("smhz","Found board: " + jObjectData.getString("ip_addr") +", id: " + jObjectData.getString("board_id") +", type: " + (jObjectData.get("board_type")== board.BOARD_TYPE.LOCAL?"local":"remote"));
+                        if (jObjectData.get("board_type")== board.BOARD_TYPE.LOCAL) {
+                            new LocalBoard(board.BOARD_TYPE.LOCAL, jObjectData.getInt("board_id"), "test", jObjectData.getString("ip_addr"));
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
