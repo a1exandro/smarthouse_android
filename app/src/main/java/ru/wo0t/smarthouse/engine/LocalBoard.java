@@ -6,10 +6,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -35,6 +31,7 @@ public class LocalBoard extends board {
     }
 
     private void sendPkt(byte[] pkt) {
+        if (pkt.length == 0) return;
         tcpClient cl;
         synchronized (this)
         {
@@ -67,10 +64,56 @@ public class LocalBoard extends board {
         }
     };
 
-    public void updateSens(String sens) {
-
+    public void updateSens(sensor sens) {
+        String cmd = "";
+        switch (sens.getSystem()){
+            case SWITCHES:
+                cmd = SYSTEM_SWITCHES + " get " + "p" + sens.getAddr();
+                break;
+            case SENSES:
+                String tpStr = "";
+                switch (sens.getType()) {
+                    case TEMP:
+                        tpStr = "T";
+                        break;
+                    case DIGITAL:
+                        tpStr = "D";
+                        break;
+                }
+                cmd = SYSTEM_SENSORS + " get " + tpStr+ sens.getAddr();
+                break;
+            case CAMES:
+                cmd = SYSTEM_CAME + " get " + "c" + sens.getAddr();
+                break;
+        }
+        sendPkt(cmd.getBytes());
     }
 
+    public void onSensorAction(sensor sens, Object param) {
+        String cmd = "";
+        switch (sens.getSystem()){
+            case SWITCHES:
+                cmd = SYSTEM_SWITCHES + " set " + "p" + sens.getAddr() + "=" + param ;
+                break;
+            case SENSES:
+                String tpStr = "";
+                switch (sens.getType()) {
+                    case TEMP:
+                        tpStr = "T";
+                        break;
+                    case DIGITAL:
+                        tpStr = "D";
+                        break;
+                }
+                cmd = SYSTEM_SENSORS + " get " + tpStr+ sens.getAddr();
+                break;
+            case CAMES:
+                cmd = SYSTEM_CAME + " get " + "c" + sens.getAddr();
+                break;
+        }
+        sendPkt(cmd.getBytes());
+
+    }
 ////////////////////////////////////////////////////////////////////////////////
 
     private class tcpClient extends AsyncTask<Object, Void, Void> {
@@ -126,7 +169,7 @@ public class LocalBoard extends board {
                         Log.e(constants.APP_TAG, e.toString());
                     }
                 }
-                while (mSock.isConnected())
+                while (mSock != null && mSock.isConnected())
                 {
                     try {
                         InputStream in = mSock.getInputStream();
@@ -145,6 +188,7 @@ public class LocalBoard extends board {
                         }
                     } catch (IOException e) {
                         Log.e(constants.APP_TAG, e.toString());
+                        mSock = null;
                     }
 
 

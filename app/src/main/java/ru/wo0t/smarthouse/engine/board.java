@@ -16,10 +16,9 @@ import ru.wo0t.smarthouse.common.constants;
  */
 
 abstract public class board {
-    protected static final String SYSTEM_SENSORS = "sensors";
-    protected static final String SYSTEM_SWITCHES = "switches";
-    protected static final String SYSTEM_SWITCHES2= "gpio";
-    protected static final String SYSTEM_CAME= "camera";
+    public static final String SYSTEM_SENSORS = "sensors";
+    public static final String SYSTEM_SWITCHES = "switches";
+    public static final String SYSTEM_CAME= "camera";
     protected static final String SENSORS_CFG_REQ = SYSTEM_SENSORS+" get cfg;";
     protected static final String SWITCHES_CFG_REQ = SYSTEM_SWITCHES+" get cfg;";
     protected static final String CAME_CFG_REQ = SYSTEM_CAME+" get cfg;";
@@ -45,6 +44,13 @@ abstract public class board {
         return null;
     }
 
+    public sensor getSensByAddr(String addr) {
+        for (int i=0; i<mSensors.size(); i++)
+            if (mSensors.get(i).getAddr().equals(addr))
+                return mSensors.get(i);
+        return null;
+    }
+
     public sensor getSens(int ind) {
         return mSensors.get(ind);
     }
@@ -61,8 +67,8 @@ abstract public class board {
         return mSensors;
     }
 
-    public boolean replaceSens(String sensName, sensor sens) {
-        return replaceSens(getSens(sensName),sens);
+    public boolean replaceSens(String sensAddr, sensor sens) {
+        return replaceSens(getSensByAddr(sensAddr),sens);
     }
 
     public boolean replaceSens(sensor oldSens, sensor newSens) {
@@ -84,30 +90,68 @@ abstract public class board {
         return lst;
     }
 
+    public List<sensor> getSensors(sensor.SENSOR_SYSTEM system) {
+        List<sensor> lst = new ArrayList();
+        for (int i=0; i<mSensors.size(); i++)
+            if (mSensors.get(i).getSystem() == system)
+                lst.add(mSensors.get(i));
+        return lst;
+    }
+
     protected void messageParser(String msg) {
         String[] msgData = msg.split(":",2);
         if (msgData.length < 2) return;
         String system = msgData[0].trim().toLowerCase();
+
+        sensor.SENSOR_SYSTEM sensSystem = sensor.SENSOR_SYSTEM.UNKNOWN;
+        switch (system) // determine sensors type, based on system. for SYSTEM_SENSORS type will be determined by jSON field.
+        {
+            case SYSTEM_SENSORS: sensSystem = sensor.SENSOR_SYSTEM.SENSES; break;
+            case SYSTEM_CAME: sensSystem = sensor.SENSOR_SYSTEM.CAMES; break;
+            case SYSTEM_SWITCHES: sensSystem = sensor.SENSOR_SYSTEM.SWITCHES; break;
+            default: sensSystem = sensor.SENSOR_SYSTEM.UNKNOWN; break;
+        }
+
         try {
             JSONObject jData = new JSONObject(msgData[1].trim());
-            if (system.equals(SYSTEM_SENSORS))
-            {
-                switch (jData.getString("type")) {
-                    case "cfg":
-                        JSONObject jDataSens = new JSONObject(jData.getString("data"));
-                        JSONArray sensors = jDataSens.getJSONArray("sensors");
-                        for (int i = 0; i < jData.length(); i++) {
-                            JSONObject jSens = sensors.getJSONObject(i);
-                            sensor sens = new sensor(jSens);
-                            if (!replaceSens(sens.getName(),sens))
-                                addSens(sens);
+
+            switch (jData.getString("type")) {
+                case "cfg":
+                    JSONObject jDataSens = new JSONObject(jData.getString("data"));
+                    JSONArray sensors = jDataSens.getJSONArray(system);
+                    for (int i = 0; i < sensors.length(); i++) {
+                        JSONObject jSens = sensors.getJSONObject(i);
+
+                        sensor sens = new sensor(jSens,sensSystem);
+                        if (!replaceSens(sens.getAddr(),sens))
+                            addSens(sens);
+                    }
+                    onSystemCfgChanged(sensSystem);
+                    break;
+                default:
+                    if (jData.has("addr") && jData.has("data")) {
+                        sensor sens = getSensByAddr(jData.getString("addr"));
+                        if (sens != null) {
+                            sens.setVal(jData.getDouble("data"));
                         }
-                        break;
+                    }
+                    break;
                 }
-            }
+
         } catch (JSONException e) {
             Log.e(constants.APP_TAG, e.toString());
         }
     }
-    abstract public void updateSens(String name);
+
+    private void onSystemCfgChanged(sensor.SENSOR_SYSTEM system) {
+
+        List<sensor> sens = getSensors(system);
+        for (int i = 0; i < sens.size(); i++) {
+            sensor s = sens.get(i);
+            updateSens(s);
+        }
+    }
+
+    abstract public void updateSens(sensor sens);
+    abstract public void onSensorAction(sensor sens, Object param);
 }

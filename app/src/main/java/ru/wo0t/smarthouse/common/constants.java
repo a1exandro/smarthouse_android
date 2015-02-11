@@ -23,6 +23,9 @@ public interface constants {
     public static final String SENS_TYPE = "type";
     public static final String SENS_ADDR = "addr";
     public static final String SENS_NAME = "name";
+    public static final String SENS_ERR_SIGN = "err_sign";
+    public static final String SENS_ERR_VAL = "err_val";
+    public static final String SENS_ERR_WARN = "err_warn";
 
     public static final int REMOTE_BOARD_PORT = 1352;
 }
