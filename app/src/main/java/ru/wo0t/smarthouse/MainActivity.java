@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import ru.wo0t.smarthouse.engine.LocalBoard;
+import ru.wo0t.smarthouse.engine.RemoteBoard;
 import ru.wo0t.smarthouse.engine.board;
 import ru.wo0t.smarthouse.common.constants;
 import ru.wo0t.smarthouse.net.boardsDiscover;
@@ -23,8 +24,9 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d("smhz","Starting the program");
-        boardsDiscover brdDiscover = new boardsDiscover(getApplicationContext(),mHandler);
-        brdDiscover.execute(1352, "", "");
+        //boardsDiscover brdDiscover = new boardsDiscover(getApplicationContext(),mHandler);
+        //brdDiscover.execute(1352, "", "");
+        new RemoteBoard(board.BOARD_TYPE.REMOTE,1,"test","admin","test");
     }
 
 

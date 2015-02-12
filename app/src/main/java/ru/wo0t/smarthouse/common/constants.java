@@ -17,7 +17,10 @@ public interface constants {
     public static final String APP_TAG = "smhz";
 
     public static final String BOARD_KEYWORD = "smhz";
-
+    public static final String REMOTE_BOARD_URL_STRING = "http://dacha.wo0t.ru/remote.php";
+    public static final String REMOTE_BOARD_USER = "admin";
+    public static final String REMOTE_BOARD_PASSWORD = "asdfq1";
+    public static final int REMOTE_BOARD_WAIT_PERIOD = 10000;
 
     public static final String SENS_VAL = "val";
     public static final String SENS_TYPE = "type";
