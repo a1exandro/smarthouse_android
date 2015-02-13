@@ -7,18 +7,14 @@ import android.os.Message;
 import android.util.Base64;
 import android.util.Log;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.Socket;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -128,12 +124,16 @@ public class RemoteBoard extends board {
         Handler mHandler;
         String mUrlString = constants.REMOTE_BOARD_URL_STRING;
         int mBoardId;
+        long mUpdTime;
+        int mSockReadTimeout; // seconds
 
         httpClient(Handler handler, String login, String password, int board_id) {
             mHandler = handler;
             mLogin = login;
             mPassword = password;
             mBoardId = board_id;
+            mUpdTime = 0;
+            mSockReadTimeout = 10;
         }
 
         private String loadFromNetwork(String cmd, String message) throws IOException {
@@ -155,7 +155,7 @@ public class RemoteBoard extends board {
 
             URL url = new URL(mUrlString);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(10000 /* milliseconds */);
+            conn.setReadTimeout(mSockReadTimeout * 1000 + 1000/* milliseconds */);
             conn.setConnectTimeout(15000 /* milliseconds */);
             conn.setRequestMethod("POST");
             conn.setDoInput(true);
@@ -166,38 +166,24 @@ public class RemoteBoard extends board {
             String encoding = Base64.encodeToString(userPassword.getBytes(),Base64.DEFAULT);
             conn.setRequestProperty("Authorization", "Basic " + encoding);
 
-
             //send POST params
-
             Hashtable<String, String> params = new Hashtable<String, String>();
             params.put("board_id", String.valueOf(mBoardId));
             params.put("cmd", cmd);
             params.put("msg", message);
-
-
             String postParamsStr = getPostParamString(params);
-            Log.i("smhz","params: "+postParamsStr);
             conn.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded");
-            conn.setRequestProperty( "charset", "utf-8");
             conn.setRequestProperty( "Content-Length", Integer.toString( postParamsStr.length() ));
-            conn.setUseCaches( false );
-
-            OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-            writer.write(postParamsStr);
-
-            conn.connect();
-            // Start the query
+            conn.getOutputStream().write(postParamsStr.getBytes("UTF-8"));
 
             InputStream stream = conn.getInputStream();
 
             return stream;
-
         }
 
         private String getPostParamString(Hashtable<String, String> params) {
             if(params.size() == 0)
                 return "";
-
             StringBuffer buf = new StringBuffer();
             Enumeration<String> keys = params.keys();
             while(keys.hasMoreElements()) {
@@ -207,7 +193,7 @@ public class RemoteBoard extends board {
             }
             return buf.toString();
         }
-        private String readIt(InputStream stream, int len) throws IOException, UnsupportedEncodingException {
+        private String readIt(InputStream stream, int len) throws IOException {
             Reader reader = null;
             reader = new InputStreamReader(stream, "UTF-8");
             char[] buffer = new char[len];
@@ -222,6 +208,15 @@ public class RemoteBoard extends board {
         @Override
         protected Void doInBackground(Object... params)
         {
+            while (!this.isCancelled() && mUpdTime == 0) {
+                sendPkt("register", new String("").getBytes());
+                try {
+                    Thread.sleep(constants.REMOTE_BOARD_WAIT_PERIOD);
+
+                } catch (InterruptedException e) {
+                    Log.e(constants.APP_TAG, e.toString());
+                }
+            }
             while (!this.isCancelled())
             {
                 try {
@@ -244,23 +239,61 @@ public class RemoteBoard extends board {
         }
 
         public void sendPkt(byte[] buf) {
+            sendPkt("message",buf);
+        }
+
+        public void sendPkt(String cmd, byte[] buf) {
             try {
-                if (buf.length == 0) return;
-                String recvData = loadFromNetwork("request", new String(buf));
+                String recvData = loadFromNetwork(cmd, new String(buf));
                 if (recvData.length() > 0)
                     onMsgRecv(recvData);
             } catch (Exception e) {
                 Log.e(constants.APP_TAG, e.toString());
             }
         }
+
         private void onMsgRecv(String msgData)
         {
-            Message msg = mHandler.obtainMessage(constants.MESSAGE_NEW_MSG);
-            Bundle bundle = new Bundle();
-            bundle.putString(constants.MESSAGE_INFO, "Recv data from "+mUrlString);
-            bundle.putByteArray(constants.MESSAGE_DATA, msgData.getBytes());
-            msg.setData(bundle);
-            mHandler.sendMessage(msg);
+            Log.i(constants.APP_TAG, msgData);
+            String board_data = "";
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            try {
+                JSONObject jObj = new JSONObject(msgData);
+                board_data = jObj.getString("board_data");
+
+                if (jObj.has("time"))
+                    mUpdTime = jObj.getInt("time");
+                if (jObj.has("cmd"))
+                    switch (jObj.getString("cmd"))
+                    {
+                        case "register":
+                                if (jObj.getString("answer").equals("OK") )
+                                {
+                                    mSockReadTimeout = jObj.getInt("timeout");
+                                    Message msg = mHandler.obtainMessage(constants.MESSAGE_CONNECTED);
+                                    Bundle bundle = new Bundle();
+                                    msg.setData(bundle);
+                                    mHandler.sendMessage(msg);
+                                }
+                            break;
+                    }
+            } catch (JSONException e) {
+                Log.e(constants.APP_TAG, e.toString());
+                return;
+            }
+
+            if (board_data.length() > 0) {
+                Message msg = mHandler.obtainMessage(constants.MESSAGE_NEW_MSG);
+                Bundle bundle = new Bundle();
+                bundle.putString(constants.MESSAGE_INFO, "Recv data from "+mUrlString);
+                bundle.putByteArray(constants.MESSAGE_DATA, board_data.getBytes());
+                msg.setData(bundle);
+                mHandler.sendMessage(msg);
+            }
         }
     }
 }
