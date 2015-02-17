@@ -13,13 +13,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import ru.wo0t.smarthouse.common.constants;
 
 /**
  * Created by alex on 2/9/15.
  */
-public class LocalBoard extends board {
+public class LocalBoard extends AbstractBoard {
     private String mIpAddr;
     private tcpClient mClient;
 
@@ -30,7 +33,7 @@ public class LocalBoard extends board {
         mClient.execute();
     }
 
-    private void sendPkt(byte[] pkt) {
+    public void sendPkt(byte[] pkt) {
         if (pkt.length == 0) return;
         tcpClient cl;
         synchronized (this)
@@ -39,30 +42,6 @@ public class LocalBoard extends board {
         }
         cl.sendPkt(pkt);
     }
-
-    @Override
-    protected void messageParser(String msg) {
-        super.messageParser(msg);
-    }
-
-    private final Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-
-                case constants.MESSAGE_CONNECTED:
-                    Log.i(constants.APP_TAG, msg.getData().getString(constants.MESSAGE_INFO));
-                    sendPkt(new String(SENSORS_CFG_REQ + SWITCHES_CFG_REQ + CAME_CFG_REQ).getBytes());
-                    break;
-                case constants.MESSAGE_NEW_MSG:
-                    byte[] data = msg.getData().getByteArray(constants.MESSAGE_DATA);
-                    Log.i(constants.APP_TAG, msg.getData().getString(constants.MESSAGE_INFO) +" " + new String(data));
-                    messageParser(new String(data));
-                    break;
-
-            }
-        }
-    };
 
     public void updateSens(sensor sens) {
         String cmd = "";
@@ -121,10 +100,13 @@ public class LocalBoard extends board {
         String mHost;
         int mPort;
         Handler mHandler;
+        Queue<byte[]> mOutQueue;
+
         tcpClient(Handler handler,String host, int port) {
             mHandler = handler;
             mHost = host;
             mPort = port;
+            mOutQueue = new LinkedList<>();
         }
 
         private boolean connectToHost(String host, int port)
@@ -175,17 +157,25 @@ public class LocalBoard extends board {
                         InputStream in = mSock.getInputStream();
                         DataInputStream dis = new DataInputStream(in);
 
-                        int len = dis.readInt();
-                        byte[] buf = new byte[len];
-                        if (len > 0) {
-                            dis.readFully(buf);
-                            Message msg = mHandler.obtainMessage(constants.MESSAGE_NEW_MSG);
-                            Bundle bundle = new Bundle();
-                            bundle.putString(constants.MESSAGE_INFO, "Recv data from "+mHost);
-                            bundle.putByteArray(constants.MESSAGE_DATA, buf);
-                            msg.setData(bundle);
-                            mHandler.sendMessage(msg);
+                        if (dis.available() > 0) {
+                            int len = dis.readInt();
+                            byte[] buf = new byte[len];
+                            if (len > 0) {
+                                dis.readFully(buf);
+                                Message msg = mHandler.obtainMessage(constants.MESSAGE_NEW_MSG);
+                                Bundle bundle = new Bundle();
+                                bundle.putString(constants.MESSAGE_INFO, "Recv data from " + mHost);
+                                bundle.putByteArray(constants.MESSAGE_DATA, buf);
+                                msg.setData(bundle);
+                                mHandler.sendMessage(msg);
+                            }
                         }
+
+                        while(mOutQueue.size() > 0)
+                        {
+                            write(mOutQueue.poll());
+                        }
+
                     } catch (IOException e) {
                         Log.e(constants.APP_TAG, e.toString());
                         mSock = null;
@@ -197,7 +187,11 @@ public class LocalBoard extends board {
             return null;
         }
 
-        public void sendPkt(byte[] buf) {
+        protected void sendPkt(byte[] buf) {
+            mOutQueue.add(buf);
+        }
+
+        public void write(byte[] buf) {
             try {
                 OutputStream out = mSock.getOutputStream();
                 DataOutputStream dos = new DataOutputStream(out);

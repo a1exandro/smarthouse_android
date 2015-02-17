@@ -1,5 +1,7 @@
 package ru.wo0t.smarthouse.engine;
 
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -7,7 +9,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import ru.wo0t.smarthouse.common.constants;
 
@@ -15,7 +19,7 @@ import ru.wo0t.smarthouse.common.constants;
  * Created by alex on 2/9/15.
  */
 
-abstract public class board {
+abstract public class AbstractBoard {
     public static final String SYSTEM_SENSORS = "sensors";
     public static final String SYSTEM_SWITCHES = "switches";
     public static final String SYSTEM_CAME= "camera";
@@ -31,7 +35,7 @@ abstract public class board {
     protected int mBoardId;
     protected JSONObject mConfig;
 
-    public board(BOARD_TYPE type, int id) {
+    public AbstractBoard(BOARD_TYPE type, int id) {
         mBoardType = type;
         mBoardId = id;
         mSensors = new ArrayList<sensor>();
@@ -98,6 +102,25 @@ abstract public class board {
         return lst;
     }
 
+    protected final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+
+                case constants.MESSAGE_CONNECTED:
+                    Log.i(constants.APP_TAG, msg.getData().getString(constants.MESSAGE_INFO));
+                    sendPkt(new String(SENSORS_CFG_REQ + SWITCHES_CFG_REQ + CAME_CFG_REQ).getBytes());
+                    break;
+                case constants.MESSAGE_NEW_MSG:
+                    byte[] data = msg.getData().getByteArray(constants.MESSAGE_DATA);
+                    Log.i(constants.APP_TAG, msg.getData().getString(constants.MESSAGE_INFO) +" " + new String(data));
+                    messageParser(new String(data));
+                    break;
+
+            }
+        }
+    };
+
     protected void messageParser(String msg) {
         String[] msgData = msg.split(":",2);
         if (msgData.length < 2) return;
@@ -144,7 +167,7 @@ abstract public class board {
     }
 
     private void onSystemCfgChanged(sensor.SENSOR_SYSTEM system) {
-
+        if (mBoardType == BOARD_TYPE.REMOTE) return;    // do not request sensors data, web interface will do it for us
         List<sensor> sens = getSensors(system);
         for (int i = 0; i < sens.size(); i++) {
             sensor s = sens.get(i);
@@ -154,4 +177,5 @@ abstract public class board {
 
     abstract public void updateSens(sensor sens);
     abstract public void onSensorAction(sensor sens, Object param);
+    abstract public void sendPkt(byte[] data);
 }

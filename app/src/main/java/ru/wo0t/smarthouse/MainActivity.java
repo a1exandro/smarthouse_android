@@ -1,21 +1,13 @@
 package ru.wo0t.smarthouse;
 
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import ru.wo0t.smarthouse.engine.LocalBoard;
-import ru.wo0t.smarthouse.engine.RemoteBoard;
-import ru.wo0t.smarthouse.engine.board;
 import ru.wo0t.smarthouse.common.constants;
-import ru.wo0t.smarthouse.net.boardsDiscover;
+import ru.wo0t.smarthouse.engine.boardsManager;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -24,9 +16,20 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d("smhz","Starting the program");
-        //boardsDiscover brdDiscover = new boardsDiscover(getApplicationContext(),mHandler);
-        //brdDiscover.execute(1352, "", "");
-        new RemoteBoard(board.BOARD_TYPE.REMOTE,1,"test","admin","test");
+
+        try {
+            Thread.sleep(5000);     // for for emulator
+
+        } catch (InterruptedException e) {
+            Log.e(constants.APP_TAG, e.toString());
+        }
+
+        try {
+            new boardsManager().lookUpForBoards();
+        } catch (Exception e) {
+            Log.e(constants.APP_TAG, e.toString());
+        }
+
     }
 
 
@@ -51,29 +54,4 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-    private final Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            //FragmentActivity activity = getActivity();
-            switch (msg.what) {
-
-                case constants.MESSAGE_NEW_BOARD:
-                    JSONObject jObjectData = (JSONObject) msg.obj;
-                    try {
-                        Log.i("smhz","Found board: " + jObjectData.getString("ip_addr") +", id: " + jObjectData.getString("board_id") +", type: " + (jObjectData.get("board_type")== board.BOARD_TYPE.LOCAL?"local":"remote"));
-                        if (jObjectData.get("board_type")== board.BOARD_TYPE.LOCAL) {
-                            new LocalBoard(board.BOARD_TYPE.LOCAL, jObjectData.getInt("board_id"), "test", jObjectData.getString("ip_addr"));
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    break;
-                case constants.MESSAGE_DISCOVERY_FINISHED:
-                    Log.i("smhz","Finishing boards discovery");
-                    break;
-
-            }
-        }
-    };
 }

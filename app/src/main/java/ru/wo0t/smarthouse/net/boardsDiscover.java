@@ -1,6 +1,5 @@
 package ru.wo0t.smarthouse.net;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
@@ -12,54 +11,68 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-import ru.wo0t.smarthouse.engine.board;
+import ru.wo0t.smarthouse.engine.AbstractBoard;
 import ru.wo0t.smarthouse.common.constants;
 
 /**
  * Created by alex on 2/5/15.
  */
 public class boardsDiscover extends AsyncTask<Object, Void, Void> {
+    public final static int LOOKUP_LOCAL_BOARD = 0x01;
+    public final static int LOOKUP_REMOTE_BOARD = 0x01 << 1;
+    public final static int LOOKUP_ALL_BOARD = LOOKUP_LOCAL_BOARD | LOOKUP_REMOTE_BOARD;
+
     private final Handler mHandler;
+    private int mLookUpFlag;
     private LocalDiscover mLocalDiscover;
     private RemoteDiscover mRemoteDiscover;
+
+
     @Override
     protected Void doInBackground(Object... params) {
 
         int udpPort = (int)params[0];
         String httpUser = (String)params[1];
         String httpPasswd = (String)params[2];
-        getBoardsList(udpPort, httpUser, httpPasswd);
+        getBoardsList(udpPort, httpUser, httpPasswd, mLookUpFlag);
         return null;
     }
 
 
-    public boardsDiscover(Context context, Handler handler)
+    public boardsDiscover(Handler handler, int lookup_flags)
     {
         mHandler = handler;
+        mLookUpFlag = lookup_flags;
     }
 
-    private void getBoardsList(int udpPort, String httpUser, String httpPasswd) {
-        mLocalDiscover = new LocalDiscover(udpPort);
-        mLocalDiscover.start();
-
-        mRemoteDiscover = new RemoteDiscover(httpUser, httpPasswd);
-        mRemoteDiscover.start();
+    private void getBoardsList(int udpPort, String httpUser, String httpPasswd, int lookup_flags) {
+        if ((lookup_flags & LOOKUP_LOCAL_BOARD) > 0) {
+            mLocalDiscover = new LocalDiscover(udpPort);
+            mLocalDiscover.start();
+        }
+        if ((lookup_flags & LOOKUP_REMOTE_BOARD) > 0) {
+            mRemoteDiscover = new RemoteDiscover(httpUser, httpPasswd);
+            mRemoteDiscover.start();
+        }
 
         try {
             Thread.sleep(5000);
             mHandler.obtainMessage(constants.MESSAGE_DISCOVERY_FINISHED).sendToTarget();
-            close();
+            //close();
         } catch (InterruptedException e) {
             Log.e("smhz", e.toString());
         }
     }
 
     public void close() {
-        mLocalDiscover.close();
-        mLocalDiscover = null;
-
-        mRemoteDiscover.close();
-        mRemoteDiscover = null;
+        if (mLocalDiscover != null) {
+            mLocalDiscover.close();
+            mLocalDiscover = null;
+        }
+        if (mLocalDiscover != null) {
+            mLocalDiscover.close();
+            mLocalDiscover = null;
+        }
     }
 
 
@@ -116,7 +129,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Void> {
                         JSONObject jObjectData = new JSONObject(reply);
                         if (!jObjectData.getString("id").equals(constants.BOARD_KEYWORD)) continue;    // if non-board response - continue receiving...
                         jObjectData.put("ip_addr",pkt.getAddress().getHostAddress());                 // put board ip addr
-                        jObjectData.put("board_type", board.BOARD_TYPE.LOCAL);                  // put board type LOCAL
+                        jObjectData.put("board_type", AbstractBoard.BOARD_TYPE.LOCAL);                  // put board type LOCAL
 
                         mHandler.obtainMessage(constants.MESSAGE_NEW_BOARD,jObjectData).sendToTarget();
                     }
@@ -142,14 +155,17 @@ public class boardsDiscover extends AsyncTask<Object, Void, Void> {
 
         }
 
-
-
         public void run() {
             try {
+                JSONObject jObjectData = new JSONObject();
+                jObjectData.put("board_id", 1);
+                jObjectData.put("login", mHttpUser);
+                jObjectData.put("password", mHttpPasswd);
+                jObjectData.put("board_type", AbstractBoard.BOARD_TYPE.REMOTE);
 
+                mHandler.obtainMessage(constants.MESSAGE_NEW_BOARD,jObjectData).sendToTarget();
             } catch (Exception e) {
                 Log.e("smhz", e.toString());
-                return;
             }
 
         }
