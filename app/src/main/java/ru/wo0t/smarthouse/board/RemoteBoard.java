@@ -1,6 +1,5 @@
-package ru.wo0t.smarthouse.engine;
+package ru.wo0t.smarthouse.board;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -33,7 +32,7 @@ public class RemoteBoard extends AbstractBoard {
     public RemoteBoard(BOARD_TYPE type, int id, String name, String login, String password) {
         super(type, id);
         mClient = new httpClient(mHandler, login, password, id);
-        mClient.execute();
+        mClient.start();
     }
 
     public void sendPkt(byte[] pkt) {
@@ -103,7 +102,7 @@ public class RemoteBoard extends AbstractBoard {
         public String cmd;
 
     }
-    private class httpClient extends AsyncTask<Object, Void, Void> {
+    private class httpClient extends Thread {
         String mLogin, mPassword;
         Handler mHandler;
         String mUrlString = constants.REMOTE_BOARD_URL_STRING;
@@ -128,7 +127,7 @@ public class RemoteBoard extends AbstractBoard {
 
             try {
                 stream = downloadUrl(cmd, message);
-                str = readIt(stream, 1024 * 100);
+                str = readIt(stream, 2048);
             } finally {
                 if (stream != null) {
                     stream.close();
@@ -198,13 +197,13 @@ public class RemoteBoard extends AbstractBoard {
 
 
         @Override
-        protected Void doInBackground(Object... params)
+        public void run()
         {
-            while (!this.isCancelled() && mUpdTime == 0) {
+            while (!this.isInterrupted() && mUpdTime == 0) {
                 write("register", new String("").getBytes());
             }
 
-            while (!this.isCancelled())
+            while (!this.isInterrupted())
             {
                 if (mOutQueue.size() > 0) {
                     while (mOutQueue.size() > 0) {
@@ -222,7 +221,6 @@ public class RemoteBoard extends AbstractBoard {
                     Log.e(constants.APP_TAG, e.toString());
                 }
             }
-            return null;
         }
 
         public void sendPkt(String cmd, byte[] buf)
@@ -250,7 +248,7 @@ public class RemoteBoard extends AbstractBoard {
 
         private void onMsgRecv(String msgData)
         {
-            Log.i(constants.APP_TAG, msgData);
+            Log.i(constants.APP_TAG, "Recv: " + msgData);
             String board_data = "";
 
             try {

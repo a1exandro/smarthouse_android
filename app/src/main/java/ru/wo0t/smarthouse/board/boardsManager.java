@@ -1,4 +1,4 @@
-package ru.wo0t.smarthouse.engine;
+package ru.wo0t.smarthouse.board;
 
 import android.os.Handler;
 import android.os.Message;
@@ -8,14 +8,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import ru.wo0t.smarthouse.common.constants;
-import ru.wo0t.smarthouse.net.boardsDiscover;
 
 /**
  * Created by alex on 2/17/15.
  */
 public class boardsManager {
     public void lookUpForBoards() {
-        boardsDiscover brdDiscover = new boardsDiscover(mHandler, boardsDiscover.LOOKUP_REMOTE_BOARD);
+        boardsDiscover brdDiscover = new boardsDiscover(mHandler, boardsDiscover.LOOKUP_ALL_BOARDS);
         brdDiscover.execute(1352, "admin", "123");
     }
 

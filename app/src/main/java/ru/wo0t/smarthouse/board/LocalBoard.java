@@ -1,6 +1,5 @@
-package ru.wo0t.smarthouse.engine;
+package ru.wo0t.smarthouse.board;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -13,7 +12,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -29,8 +27,8 @@ public class LocalBoard extends AbstractBoard {
     public LocalBoard(BOARD_TYPE type, int id, String name, String ipAddr) {
         super(type, id);
         mIpAddr = ipAddr;
-        mClient = new tcpClient(mHandler,ipAddr,constants.REMOTE_BOARD_PORT);
-        mClient.execute();
+        mClient = new tcpClient(mHandler,ipAddr,constants.LOCAL_BOARD_PORT);
+        mClient.start();
     }
 
     public void sendPkt(byte[] pkt) {
@@ -95,7 +93,7 @@ public class LocalBoard extends AbstractBoard {
     }
 ////////////////////////////////////////////////////////////////////////////////
 
-    private class tcpClient extends AsyncTask<Object, Void, Void> {
+    private class tcpClient extends Thread {
         Socket mSock;
         String mHost;
         int mPort;
@@ -138,14 +136,14 @@ public class LocalBoard extends AbstractBoard {
         }
 
         @Override
-        protected Void doInBackground(Object... params)
+        public void run()
         {
-            while (!this.isCancelled())
+            while (!this.isInterrupted())
             {
                 while (!connectToHost(mHost, mPort))
                 {
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(constants.LOCAL_BOARD_RECONNECT_TIME);
 
                     } catch (InterruptedException e) {
                         Log.e(constants.APP_TAG, e.toString());
@@ -184,7 +182,6 @@ public class LocalBoard extends AbstractBoard {
 
                 }
             }
-            return null;
         }
 
         protected void sendPkt(byte[] buf) {

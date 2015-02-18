@@ -1,4 +1,4 @@
-package ru.wo0t.smarthouse.net;
+package ru.wo0t.smarthouse.board;
 
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -11,16 +11,16 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-import ru.wo0t.smarthouse.engine.AbstractBoard;
+import ru.wo0t.smarthouse.board.AbstractBoard;
 import ru.wo0t.smarthouse.common.constants;
 
 /**
  * Created by alex on 2/5/15.
  */
-public class boardsDiscover extends AsyncTask<Object, Void, Void> {
+public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
     public final static int LOOKUP_LOCAL_BOARD = 0x01;
     public final static int LOOKUP_REMOTE_BOARD = 0x01 << 1;
-    public final static int LOOKUP_ALL_BOARD = LOOKUP_LOCAL_BOARD | LOOKUP_REMOTE_BOARD;
+    public final static int LOOKUP_ALL_BOARDS = LOOKUP_LOCAL_BOARD | LOOKUP_REMOTE_BOARD;
 
     private final Handler mHandler;
     private int mLookUpFlag;
@@ -29,13 +29,15 @@ public class boardsDiscover extends AsyncTask<Object, Void, Void> {
 
 
     @Override
-    protected Void doInBackground(Object... params) {
+    protected Boolean doInBackground(Object... params) {
 
         int udpPort = (int)params[0];
         String httpUser = (String)params[1];
         String httpPasswd = (String)params[2];
         getBoardsList(udpPort, httpUser, httpPasswd, mLookUpFlag);
-        return null;
+        mHandler.obtainMessage(constants.MESSAGE_DISCOVERY_FINISHED).sendToTarget();
+        close();
+        return true;
     }
 
 
@@ -56,9 +58,9 @@ public class boardsDiscover extends AsyncTask<Object, Void, Void> {
         }
 
         try {
-            Thread.sleep(5000);
-            mHandler.obtainMessage(constants.MESSAGE_DISCOVERY_FINISHED).sendToTarget();
-            //close();
+            for (int i = 0; i < 100; i++) {
+                Thread.sleep(constants.BOARD_LOOKUP_TIMEOUT/100);
+            }
         } catch (InterruptedException e) {
             Log.e("smhz", e.toString());
         }

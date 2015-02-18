@@ -1,4 +1,4 @@
-package ru.wo0t.smarthouse.engine;
+package ru.wo0t.smarthouse.board;
 
 import android.util.Log;
 

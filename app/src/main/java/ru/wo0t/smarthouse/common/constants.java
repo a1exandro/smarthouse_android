@@ -20,7 +20,6 @@ public interface constants {
     public static final String REMOTE_BOARD_URL_STRING = "http://dacha.wo0t.ru/remote.php";
     public static final String REMOTE_BOARD_USER = "admin";
     public static final String REMOTE_BOARD_PASSWORD = "asdfq1";
-    public static final int REMOTE_BOARD_WAIT_PERIOD = 10000;
 
     public static final String SENS_VAL = "val";
     public static final String SENS_TYPE = "type";
@@ -30,5 +29,8 @@ public interface constants {
     public static final String SENS_ERR_VAL = "err_val";
     public static final String SENS_ERR_WARN = "err_warn";
 
-    public static final int REMOTE_BOARD_PORT = 1352;
+    public static final int LOCAL_BOARD_PORT = 1352;
+    public static final int BOARD_LOOKUP_TIMEOUT = 5000;
+    public static final int LOCAL_BOARD_RECONNECT_TIME = 5000;
+    public static final int REMOTE_BOARD_WAIT_PERIOD = 10000;
 }

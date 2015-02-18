@@ -7,7 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import ru.wo0t.smarthouse.common.constants;
-import ru.wo0t.smarthouse.engine.boardsManager;
+import ru.wo0t.smarthouse.board.boardsManager;
 
 public class MainActivity extends ActionBarActivity {
 

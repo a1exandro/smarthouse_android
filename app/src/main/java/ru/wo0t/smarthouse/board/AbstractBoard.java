@@ -1,4 +1,4 @@
-package ru.wo0t.smarthouse.engine;
+package ru.wo0t.smarthouse.board;
 
 import android.os.Handler;
 import android.os.Message;
@@ -9,9 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 import ru.wo0t.smarthouse.common.constants;
 
