@@ -124,7 +124,7 @@ abstract public class AbstractBoard {
         if (msgData.length < 2) return;
         String system = msgData[0].trim().toLowerCase();
 
-        sensor.SENSOR_SYSTEM sensSystem = sensor.SENSOR_SYSTEM.UNKNOWN;
+        sensor.SENSOR_SYSTEM sensSystem;
         switch (system) // determine sensors type, based on system. for SYSTEM_SENSORS type will be determined by jSON field.
         {
             case SYSTEM_SENSORS: sensSystem = sensor.SENSOR_SYSTEM.SENSES; break;
