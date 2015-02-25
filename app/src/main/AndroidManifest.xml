@@ -22,6 +22,11 @@
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
+        <activity
+            android:name=".BoardsLookup"
+            android:label="@string/title_activity_lookup_boards"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+        </activity>
     </application>
 
 </manifest>

@@ -1,0 +1,14 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:key="remote_login"
+        android:title="@string/pref_title_remote_access_login"
+        android:summary="@string/pref_title_remote_access_login"/>
+
+    <EditTextPreference
+        android:key="remote_password"
+        android:title="@string/pref_title_remote_access_password"
+        android:summary="@string/pref_title_remote_access_password"
+        android:inputType="textPassword" />
+
+</PreferenceScreen>

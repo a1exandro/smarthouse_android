@@ -5,19 +5,13 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import ru.wo0t.smarthouse.common.constants;
 
@@ -33,13 +27,13 @@ public class MainActivity extends FragmentActivity {
 
         Log.d("smhz","Starting the program");
 
-        try {
+       /* try {
             Thread.sleep(5000);     // wait for emulator
 
         } catch (InterruptedException e) {
             Log.e(constants.APP_TAG, e.toString());
         }
-
+*/
         try {
 
             final ActionBar actionBar = getActionBar();
@@ -106,13 +100,19 @@ public class MainActivity extends FragmentActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);
-            return true;
+        switch (id) {
+            case R.id.action_settings: {
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
+            } break;
+            case R.id.action_boards_lookup: {
+                Intent intent = new Intent(this, BoardsLookup.class);
+                startActivity(intent);
+            } break;
+            default:  return super.onOptionsItemSelected(item);
         }
 
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 }
 
