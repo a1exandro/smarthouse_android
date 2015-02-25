@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">smartHouse</string>
-    <string name="hello_world">Hello world!!!</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">Настройки</string>
 
+    <string name="frame_info">Инфо</string>
+    <string name="frame_sensors">Датчики</string>
+    <string name="frame_switches">Переключатели</string>
+    <string name="frame_cameras">Камеры</string>
 </resources>

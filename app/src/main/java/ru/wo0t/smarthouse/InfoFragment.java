@@ -9,12 +9,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 
-public class SensorsFragment extends Fragment {
+public class InfoFragment extends Fragment {
 
     public static final String ARG_OBJECT = "object";
 
 
-    public SensorsFragment() {
+    public InfoFragment() {
         // Required empty public constructor
     }
 
