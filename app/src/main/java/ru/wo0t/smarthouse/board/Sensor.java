@@ -11,7 +11,7 @@ import ru.wo0t.smarthouse.common.constants;
  * Created by alex on 2/9/15.
  */
 
-public class sensor<T> {
+public class Sensor<T> {
     public static enum SENSOR_TYPE {UNKNOWN, TEMP, DIGITAL, SWITCH, CAME}
     public static enum SENSOR_SYSTEM {UNKNOWN, SENSES, SWITCHES, CAMES}
     private T mVal;
@@ -22,13 +22,13 @@ public class sensor<T> {
     private String mErrSign, mErrVal;
     private int mErrWarn;
 
-    public sensor() {
+    public Sensor() {
         mSensType = SENSOR_TYPE.UNKNOWN;
     }
-    public sensor(JSONObject jObj){
+    public Sensor(JSONObject jObj){
         loadFromJSON(jObj, SENSOR_SYSTEM.UNKNOWN);
     }
-    public sensor(JSONObject jObj, SENSOR_SYSTEM sensSystem){
+    public Sensor(JSONObject jObj, SENSOR_SYSTEM sensSystem){
         loadFromJSON(jObj, sensSystem);
     }
     public T getVal() { return mVal; }
@@ -75,9 +75,9 @@ public class sensor<T> {
                 SENSOR_TYPE sType = SENSOR_TYPE.UNKNOWN;
                 switch (sensSystem) // determine sensors type, based on system. for SYSTEM_SENSORS type will be determined by jSON field.
                 {
-                    case CAMES: sType = sensor.SENSOR_TYPE.CAME; break;
-                    case SWITCHES: sType = sensor.SENSOR_TYPE.SWITCH; break;
-                    default: sType = sensor.SENSOR_TYPE.UNKNOWN; break;
+                    case CAMES: sType = Sensor.SENSOR_TYPE.CAME; break;
+                    case SWITCHES: sType = Sensor.SENSOR_TYPE.SWITCH; break;
+                    default: sType = Sensor.SENSOR_TYPE.UNKNOWN; break;
                 }
                 mSensType = sType;
             }

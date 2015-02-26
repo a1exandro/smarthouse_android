@@ -28,7 +28,7 @@ abstract public class AbstractBoard {
     public static enum BOARD_TYPE {LOCAL, REMOTE}
 
     protected BOARD_TYPE mBoardType;
-    protected List<sensor>mSensors;
+    protected List<Sensor>mSensors;
     protected String mBoardName;
     protected int mBoardId;
     protected JSONObject mConfig;
@@ -36,24 +36,24 @@ abstract public class AbstractBoard {
     public AbstractBoard(BOARD_TYPE type, int id) {
         mBoardType = type;
         mBoardId = id;
-        mSensors = new ArrayList<sensor>();
+        mSensors = new ArrayList<Sensor>();
     }
 
-    public sensor getSens(String name) {
+    public Sensor getSens(String name) {
         for (int i=0; i<mSensors.size(); i++)
             if (mSensors.get(i).getName().equals(name))
                 return mSensors.get(i);
         return null;
     }
 
-    public sensor getSensByAddr(String addr) {
+    public Sensor getSensByAddr(String addr) {
         for (int i=0; i<mSensors.size(); i++)
             if (mSensors.get(i).getAddr().equals(addr))
                 return mSensors.get(i);
         return null;
     }
 
-    public sensor getSens(int ind) {
+    public Sensor getSens(int ind) {
         return mSensors.get(ind);
     }
 
@@ -61,19 +61,19 @@ abstract public class AbstractBoard {
         return mSensors.size();
     }
 
-    public void addSens(sensor sens) {
+    public void addSens(Sensor sens) {
         mSensors.add(sens);
     }
 
-    public List<sensor> getSensors() {
+    public List<Sensor> getSensors() {
         return mSensors;
     }
 
-    public boolean replaceSens(String sensAddr, sensor sens) {
+    public boolean replaceSens(String sensAddr, Sensor sens) {
         return replaceSens(getSensByAddr(sensAddr),sens);
     }
 
-    public boolean replaceSens(sensor oldSens, sensor newSens) {
+    public boolean replaceSens(Sensor oldSens, Sensor newSens) {
         boolean found = false;
 
         for (int i=0; i<mSensors.size(); i++)
@@ -84,16 +84,16 @@ abstract public class AbstractBoard {
         return found;
     }
 
-    public List<sensor> getSensors(sensor.SENSOR_TYPE sType) {
-        List<sensor> lst = new ArrayList();
+    public List<Sensor> getSensors(Sensor.SENSOR_TYPE sType) {
+        List<Sensor> lst = new ArrayList();
         for (int i=0; i<mSensors.size(); i++)
             if (mSensors.get(i).getType() == sType)
                 lst.add(mSensors.get(i));
         return lst;
     }
 
-    public List<sensor> getSensors(sensor.SENSOR_SYSTEM system) {
-        List<sensor> lst = new ArrayList();
+    public List<Sensor> getSensors(Sensor.SENSOR_SYSTEM system) {
+        List<Sensor> lst = new ArrayList();
         for (int i=0; i<mSensors.size(); i++)
             if (mSensors.get(i).getSystem() == system)
                 lst.add(mSensors.get(i));
@@ -124,13 +124,13 @@ abstract public class AbstractBoard {
         if (msgData.length < 2) return;
         String system = msgData[0].trim().toLowerCase();
 
-        sensor.SENSOR_SYSTEM sensSystem;
+        Sensor.SENSOR_SYSTEM sensSystem;
         switch (system) // determine sensors type, based on system. for SYSTEM_SENSORS type will be determined by jSON field.
         {
-            case SYSTEM_SENSORS: sensSystem = sensor.SENSOR_SYSTEM.SENSES; break;
-            case SYSTEM_CAME: sensSystem = sensor.SENSOR_SYSTEM.CAMES; break;
-            case SYSTEM_SWITCHES: sensSystem = sensor.SENSOR_SYSTEM.SWITCHES; break;
-            default: sensSystem = sensor.SENSOR_SYSTEM.UNKNOWN; break;
+            case SYSTEM_SENSORS: sensSystem = Sensor.SENSOR_SYSTEM.SENSES; break;
+            case SYSTEM_CAME: sensSystem = Sensor.SENSOR_SYSTEM.CAMES; break;
+            case SYSTEM_SWITCHES: sensSystem = Sensor.SENSOR_SYSTEM.SWITCHES; break;
+            default: sensSystem = Sensor.SENSOR_SYSTEM.UNKNOWN; break;
         }
 
         try {
@@ -143,7 +143,7 @@ abstract public class AbstractBoard {
                     for (int i = 0; i < sensors.length(); i++) {
                         JSONObject jSens = sensors.getJSONObject(i);
 
-                        sensor sens = new sensor(jSens,sensSystem);
+                        Sensor sens = new Sensor(jSens,sensSystem);
                         if (!replaceSens(sens.getAddr(),sens))
                             addSens(sens);
                     }
@@ -151,7 +151,7 @@ abstract public class AbstractBoard {
                     break;
                 default:
                     if (jData.has("addr") && jData.has("data")) {
-                        sensor sens = getSensByAddr(jData.getString("addr"));
+                        Sensor sens = getSensByAddr(jData.getString("addr"));
                         if (sens != null) {
                             sens.setVal(jData.getDouble("data"));
                         }
@@ -164,16 +164,16 @@ abstract public class AbstractBoard {
         }
     }
 
-    private void onSystemCfgChanged(sensor.SENSOR_SYSTEM system) {
+    private void onSystemCfgChanged(Sensor.SENSOR_SYSTEM system) {
         if (mBoardType == BOARD_TYPE.REMOTE) return;    // do not request sensors data, web interface will do it for us
-        List<sensor> sens = getSensors(system);
+        List<Sensor> sens = getSensors(system);
         for (int i = 0; i < sens.size(); i++) {
-            sensor s = sens.get(i);
+            Sensor s = sens.get(i);
             updateSens(s);
         }
     }
 
-    abstract public void updateSens(sensor sens);
-    abstract public void onSensorAction(sensor sens, Object param);
+    abstract public void updateSens(Sensor sens);
+    abstract public void onSensorAction(Sensor sens, Object param);
     abstract public void sendPkt(byte[] data);
 }

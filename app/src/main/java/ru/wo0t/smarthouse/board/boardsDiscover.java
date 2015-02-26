@@ -2,17 +2,27 @@ package ru.wo0t.smarthouse.board;
 
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.util.Base64;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.Hashtable;
 
-import ru.wo0t.smarthouse.board.AbstractBoard;
 import ru.wo0t.smarthouse.common.constants;
+import ru.wo0t.smarthouse.common.funcs;
 
 /**
  * Created by alex on 2/5/15.
@@ -149,23 +159,34 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
     }
 
     private class RemoteDiscover extends Thread {
-        String mHttpUser, mHttpPasswd;
+        String mLogin, mPassword;
+        int mSockReadTimeout = 10;
+        String mUrlString = constants.REMOTE_BOARD_URL_STRING;
+
         public RemoteDiscover(String httpUser, String httpPasswd)
         {
-            mHttpUser = httpUser;
-            mHttpPasswd = httpPasswd;
-
+            mLogin = httpUser;
+            mPassword = httpPasswd;
         }
 
         public void run() {
             try {
-                JSONObject jObjectData = new JSONObject();
-                jObjectData.put("board_id", 1);
-                jObjectData.put("login", mHttpUser);
-                jObjectData.put("password", mHttpPasswd);
-                jObjectData.put("board_type", AbstractBoard.BOARD_TYPE.REMOTE);
+                String reply = loadFromNetwork("board_list_req","");
+                JSONObject jReply = new JSONObject(reply);
+                String salt = "";
+                if (jReply.has("salt")) salt = jReply.getString("salt");
+                String password = funcs.md5(mPassword + salt);
 
-                mHandler.obtainMessage(constants.MESSAGE_NEW_BOARD,jObjectData).sendToTarget();
+                JSONArray boards = jReply.getJSONArray("boards");
+                for (int i = 0; i < boards.length(); i++) {
+                    JSONObject jBoard = boards.getJSONObject(i);
+
+                    jBoard.put("login", mLogin);
+                    jBoard.put("password", password);
+                    jBoard.put("board_type", AbstractBoard.BOARD_TYPE.REMOTE);
+                    jBoard.put("board_id",jBoard.getString("id"));
+                    mHandler.obtainMessage(constants.MESSAGE_NEW_BOARD,jBoard).sendToTarget();
+                }
             } catch (Exception e) {
                 Log.e("smhz", e.toString());
             }
@@ -173,6 +194,82 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
         }
         public void close() {
 
+        }
+
+        private String loadFromNetwork(String cmd, String message) throws IOException {
+            InputStream stream = null;
+            String str = "";
+
+            try {
+                stream = downloadUrl(cmd, message);
+                str = readIt(stream, 2048);
+            } finally {
+                if (stream != null) {
+                    stream.close();
+                }
+            }
+            return str;
+        }
+
+        private InputStream downloadUrl(String cmd, String message) throws IOException {
+
+            URL url = new URL(mUrlString);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(mSockReadTimeout * 1000 + 3000/* milliseconds */);
+            conn.setConnectTimeout(15000 /* milliseconds */);
+            conn.setRequestMethod("POST");
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+
+            // set basic auth
+            String userPassword = constants.REMOTE_BOARD_USER + ":" + constants.REMOTE_BOARD_PASSWORD;
+            String encoding = Base64.encodeToString(userPassword.getBytes(), Base64.DEFAULT);
+            conn.setRequestProperty("Authorization", "Basic " + encoding);
+
+            //send POST params
+            Hashtable<String, String> params = new Hashtable<String, String>();
+
+            params.put("cmd", cmd);
+            params.put("msg", message);
+
+            params.put("login", mLogin);
+            params.put("password", mPassword);
+            String postParamsStr = getPostParamString(params);
+            conn.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded");
+            conn.setRequestProperty( "Content-Length", Integer.toString( postParamsStr.length() ));
+            conn.getOutputStream().write(postParamsStr.getBytes("UTF-8"));
+
+            InputStream stream = conn.getInputStream();
+
+            return stream;
+        }
+
+        private String getPostParamString(Hashtable<String, String> params) {
+            if(params.size() == 0)
+                return "";
+            StringBuffer buf = new StringBuffer();
+            Enumeration<String> keys = params.keys();
+            while(keys.hasMoreElements()) {
+                buf.append(buf.length() == 0 ? "" : "&");
+                String key = keys.nextElement();
+                buf.append(key).append("=").append(params.get(key));
+            }
+            return buf.toString();
+        }
+
+        private String readIt(InputStream stream, int len) throws IOException {
+            Reader reader = null;
+            reader = new InputStreamReader(stream, "UTF-8");
+            char[] buffer = new char[len];
+
+            int readBytes = 0;
+            String ret = "";
+            while ( (readBytes = reader.read(buffer)) > 0) {
+                String s = new String(buffer,0,readBytes);
+                ret += s;
+            }
+
+            return ret;
         }
     }
 }

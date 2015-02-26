@@ -3,8 +3,10 @@ package ru.wo0t.smarthouse;
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 
 import android.support.v4.view.ViewPager;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import ru.wo0t.smarthouse.board.boardsManager;
 import ru.wo0t.smarthouse.common.constants;
 
 public class MainActivity extends FragmentActivity {
@@ -27,13 +30,13 @@ public class MainActivity extends FragmentActivity {
 
         Log.d("smhz","Starting the program");
 
-       /* try {
+        try {
             Thread.sleep(5000);     // wait for emulator
 
         } catch (InterruptedException e) {
             Log.e(constants.APP_TAG, e.toString());
         }
-*/
+
         try {
 
             final ActionBar actionBar = getActionBar();
@@ -81,12 +84,15 @@ public class MainActivity extends FragmentActivity {
             Log.e(constants.APP_TAG, e.toString());
         }
 
-       /* try {
-            new boardsManager().lookUpForBoards();
+
+        try {
+            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            String login = pref.getString("remote_login","");
+            String password = pref.getString("remote_password","");
+            new boardsManager().lookUpForBoards(constants.LOCAL_BOARD_PORT, login, password);
         } catch (Exception e) {
             Log.e(constants.APP_TAG, e.toString());
-        }*/
-
+        }
     }
 
     @Override

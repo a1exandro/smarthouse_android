@@ -45,7 +45,7 @@ public class RemoteBoard extends AbstractBoard {
         cl.sendPkt(pkt);
     }
 
-    public void updateSens(sensor sens) {
+    public void updateSens(Sensor sens) {
         String cmd = "";
         switch (sens.getSystem()){
             case SWITCHES:
@@ -70,7 +70,7 @@ public class RemoteBoard extends AbstractBoard {
         sendPkt(cmd.getBytes());
     }
 
-    public void onSensorAction(sensor sens, Object param) {
+    public void onSensorAction(Sensor sens, Object param) {
         String cmd = "";
         switch (sens.getSystem()){
             case SWITCHES:
@@ -157,6 +157,8 @@ public class RemoteBoard extends AbstractBoard {
             params.put("cmd", cmd);
             params.put("msg", message);
             params.put("time", Integer.toString(mUpdTime));
+            params.put("login", mLogin);
+            params.put("password", mPassword);
             String postParamsStr = getPostParamString(params);
             conn.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded");
             conn.setRequestProperty( "Content-Length", Integer.toString( postParamsStr.length() ));

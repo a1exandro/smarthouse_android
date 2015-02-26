@@ -41,7 +41,7 @@ public class LocalBoard extends AbstractBoard {
         cl.sendPkt(pkt);
     }
 
-    public void updateSens(sensor sens) {
+    public void updateSens(Sensor sens) {
         String cmd = "";
         switch (sens.getSystem()){
             case SWITCHES:
@@ -66,7 +66,7 @@ public class LocalBoard extends AbstractBoard {
         sendPkt(cmd.getBytes());
     }
 
-    public void onSensorAction(sensor sens, Object param) {
+    public void onSensorAction(Sensor sens, Object param) {
         String cmd = "";
         switch (sens.getSystem()){
             case SWITCHES:
