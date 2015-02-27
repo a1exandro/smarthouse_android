@@ -1,9 +1,14 @@
 package ru.wo0t.smarthouse.board;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -15,15 +20,51 @@ import ru.wo0t.smarthouse.common.constants;
  * Created by alex on 2/17/15.
  */
 public class boardsManager {
+    Context mContext;
+
+    public static final String BROADCAST_MSG = "BROADCAST_MSG";
+
+    public static final String BROADCAST_MSG_TYPE = "BROADCAST_MSG_TYPE";
+
+    public static final String BOARD_ID = "BOARD_ID";
+    public static final String BROADCAST_MSG_DESCR = "BROADCAST_MSG_DESCR";
+    public static final String BOARD_CONNECTED = "BOARD_CONNECTED";
+    public static final String BOARD_NEW_MESSAGE = "BOARD_NEW_MESSAGE";
+    public static final String BOARD_CFG_CHANGED = "BOARD_CFG_CHANGED";
+
+    public static final String BOARD_DATA = "BOARD_DATA";
+    public static final String SENS_DATA = "SENS_DATA";
+
+    public static final String SENSOR_ADDR = "SENSOR_ADDR";
+    public static final String SENSOR_TYPE = "SENSOR_TYPE";
+    public static final String SENSOR_VALUE = "SENSOR_VALUE";
+    public static final String SENSOR_NAME = "SENSOR_NAME";
+
+    private BroadcastReceiver onNotice= new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            Log.d("smhz","onReceive called: " + (intent.hasExtra(BROADCAST_MSG_TYPE)?intent.getStringExtra(BROADCAST_MSG_TYPE):"none"));
+
+        }
+    };
+
+    public boardsManager(Context context) {
+        mContext = context;
+        IntentFilter iff= new IntentFilter(BROADCAST_MSG);
+        LocalBroadcastManager.getInstance(context).registerReceiver(onNotice, iff);
+    }
+
     public void lookUpForBoards(int remotePort, String login, String password) {
-        boardsDiscover brdDiscover = new boardsDiscover(mHandler, boardsDiscover.LOOKUP_ALL_BOARDS);
+        boardsDiscover brdDiscover = new boardsDiscover(mHandler, boardsDiscover.LOOKUP_REMOTE_BOARD);
 
         brdDiscover.execute(remotePort, login, password);
     }
 
     public void connectToLocalBoard(int board_id, String board_name, String ip_addr) {
         try {
-            new LocalBoard(AbstractBoard.BOARD_TYPE.LOCAL, board_id, board_name, ip_addr);
+            new LocalBoard(mContext, AbstractBoard.BOARD_TYPE.LOCAL, board_id, board_name, ip_addr);
         } catch (Exception e) {
             Log.e("smhz", e.toString());
         }
@@ -31,7 +72,7 @@ public class boardsManager {
 
     public void connectToRemoteBoard(int board_id, String board_name, String login, String password) {
         try {
-            new RemoteBoard(AbstractBoard.BOARD_TYPE.REMOTE,board_id,board_name,login,password);
+            new RemoteBoard(mContext, AbstractBoard.BOARD_TYPE.REMOTE,board_id,board_name,login,password);
         } catch (Exception e) {
             Log.e("smhz", e.toString());
         }

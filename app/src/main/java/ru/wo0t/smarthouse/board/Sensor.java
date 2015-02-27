@@ -34,7 +34,7 @@ public class Sensor<T> {
     public T getVal() { return mVal; }
     public void setVal(T val) {
         mVal = val;
-        Log.i(constants.APP_TAG, "Sensor " + mName +" new data: " + mVal);
+        //Log.i(constants.APP_TAG, "Sensor " + mName +" new data: " + mVal);
     }
 
     public SENSOR_TYPE getType() { return mSensType; }

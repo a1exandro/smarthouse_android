@@ -1,5 +1,6 @@
 package ru.wo0t.smarthouse.board;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -29,8 +30,8 @@ import ru.wo0t.smarthouse.common.constants;
 public class RemoteBoard extends AbstractBoard {
     private httpClient mClient;
 
-    public RemoteBoard(BOARD_TYPE type, int id, String name, String login, String password) {
-        super(type, id);
+    public RemoteBoard(Context context, BOARD_TYPE type, int id, String name, String login, String password) {
+        super(context, type, id);
         mClient = new httpClient(mHandler, login, password, id);
         mClient.start();
     }

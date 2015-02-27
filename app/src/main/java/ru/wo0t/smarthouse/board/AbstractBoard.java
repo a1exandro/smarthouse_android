@@ -1,7 +1,11 @@
 package ru.wo0t.smarthouse.board;
 
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -32,11 +36,13 @@ abstract public class AbstractBoard {
     protected String mBoardName;
     protected int mBoardId;
     protected JSONObject mConfig;
+    Context mContext;
 
-    public AbstractBoard(BOARD_TYPE type, int id) {
+    public AbstractBoard(Context context, BOARD_TYPE type, int id) {
         mBoardType = type;
         mBoardId = id;
         mSensors = new ArrayList<Sensor>();
+        mContext = context;
     }
 
     public Sensor getSens(String name) {
@@ -106,18 +112,46 @@ abstract public class AbstractBoard {
             switch (msg.what) {
 
                 case constants.MESSAGE_CONNECTED:
-                    Log.i(constants.APP_TAG, msg.getData().getString(constants.MESSAGE_INFO));
+                    sendBroadcastMsg(boardsManager.BOARD_CONNECTED);
                     sendPkt(new String(SENSORS_CFG_REQ + SWITCHES_CFG_REQ + CAME_CFG_REQ).getBytes());
                     break;
                 case constants.MESSAGE_NEW_MSG:
                     byte[] data = msg.getData().getByteArray(constants.MESSAGE_DATA);
-                    Log.i(constants.APP_TAG, msg.getData().getString(constants.MESSAGE_INFO) +" " + new String(data));
+                    sendBroadcastMsg(boardsManager.BOARD_NEW_MESSAGE,msg.getData().getString(constants.MESSAGE_INFO) +" " + new String(data));
                     messageParser(new String(data));
                     break;
-
             }
         }
     };
+
+    private void sendBroadcastMsg(String event, String data) {
+        Bundle args = new Bundle();
+        args.putString(boardsManager.BROADCAST_MSG_TYPE,event);
+        args.putString(boardsManager.BROADCAST_MSG_DESCR,data);
+        sendBroadcastMsg(args);
+    }
+
+    private void sendBroadcastMsg(String event) {
+        Bundle args = new Bundle();
+        args.putString(boardsManager.BROADCAST_MSG_TYPE, event);
+        sendBroadcastMsg(args);
+    }
+
+    private void sendBroadcastMsg(String event, Bundle data) {
+        Bundle args = new Bundle();
+        args.putString(boardsManager.BROADCAST_MSG_TYPE, event);
+        args.putBundle(boardsManager.BOARD_DATA, data);
+        sendBroadcastMsg(args);
+    }
+    private void sendBroadcastMsg(Bundle args) {
+        Intent intent = new Intent(boardsManager.BROADCAST_MSG);
+
+        args.putInt(boardsManager.BOARD_ID, mBoardId);
+        args.putInt(boardsManager.BOARD_ID, mBoardType.ordinal());
+
+        intent.putExtras(args);
+        LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
+    }
 
     protected void messageParser(String msg) {
         String[] msgData = msg.split(":",2);
@@ -148,12 +182,22 @@ abstract public class AbstractBoard {
                             addSens(sens);
                     }
                     onSystemCfgChanged(sensSystem);
+                    sendBroadcastMsg(boardsManager.BOARD_CFG_CHANGED);
                     break;
                 default:
                     if (jData.has("addr") && jData.has("data")) {
                         Sensor sens = getSensByAddr(jData.getString("addr"));
                         if (sens != null) {
                             sens.setVal(jData.getDouble("data"));
+
+                            Bundle sensData = new Bundle();
+
+                            sensData.putString(boardsManager.SENSOR_NAME, sens.getName());
+                            sensData.putString(boardsManager.SENSOR_ADDR, sens.getAddr());
+                            sensData.putInt(boardsManager.SENSOR_TYPE, sens.getType().ordinal());
+                            sensData.putDouble(boardsManager.SENSOR_VALUE, (double)sens.getVal());
+
+                            sendBroadcastMsg(boardsManager.SENS_DATA, sensData);
                         }
                     }
                     break;

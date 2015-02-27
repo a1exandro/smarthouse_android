@@ -1,5 +1,6 @@
 package ru.wo0t.smarthouse.board;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,8 +25,8 @@ public class LocalBoard extends AbstractBoard {
     private String mIpAddr;
     private tcpClient mClient;
 
-    public LocalBoard(BOARD_TYPE type, int id, String name, String ipAddr) {
-        super(type, id);
+    public LocalBoard(Context context, BOARD_TYPE type, int id, String name, String ipAddr) {
+        super(context, type, id);
         mIpAddr = ipAddr;
         mClient = new tcpClient(mHandler,ipAddr,constants.LOCAL_BOARD_PORT);
         mClient.start();

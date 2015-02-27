@@ -89,7 +89,7 @@ public class MainActivity extends FragmentActivity {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             String login = pref.getString("remote_login","");
             String password = pref.getString("remote_password","");
-            new boardsManager().lookUpForBoards(constants.LOCAL_BOARD_PORT, login, password);
+            new boardsManager(this).lookUpForBoards(constants.LOCAL_BOARD_PORT, login, password);
         } catch (Exception e) {
             Log.e(constants.APP_TAG, e.toString());
         }
