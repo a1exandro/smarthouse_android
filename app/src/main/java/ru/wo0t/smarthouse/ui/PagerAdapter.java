@@ -1,4 +1,4 @@
-package ru.wo0t.smarthouse;
+package ru.wo0t.smarthouse.ui;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -8,6 +8,8 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import ru.wo0t.smarthouse.R;
 
 /**
  * Created by alex on 2/25/15.

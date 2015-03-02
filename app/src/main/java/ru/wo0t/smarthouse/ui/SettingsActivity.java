@@ -1,4 +1,4 @@
-package ru.wo0t.smarthouse;
+package ru.wo0t.smarthouse.ui;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -21,6 +21,8 @@ import android.widget.EditText;
 
 
 import java.util.List;
+
+import ru.wo0t.smarthouse.R;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On

@@ -1,4 +1,4 @@
-package ru.wo0t.smarthouse;
+package ru.wo0t.smarthouse.ui;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import ru.wo0t.smarthouse.R;
 
 
 public class InfoFragment extends Fragment {

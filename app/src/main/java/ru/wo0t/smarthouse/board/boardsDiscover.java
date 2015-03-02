@@ -72,7 +72,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
                 Thread.sleep(constants.BOARD_LOOKUP_TIMEOUT/100);
             }
         } catch (InterruptedException e) {
-            Log.e("smhz", e.toString());
+            Log.e(constants.APP_TAG, e.toString());
         }
     }
 
@@ -97,7 +97,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
             try {
                 mSocket = new DatagramSocket(port);
             } catch (SocketException e) {
-                Log.e("smhz", e.toString());
+                Log.e(constants.APP_TAG, e.toString());
                 return;
             }
         }
@@ -114,7 +114,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
             }
             catch(Exception e)
             {
-                Log.e("smhz", e.toString());
+                Log.e(constants.APP_TAG, e.toString());
                 return "";
             }
         }
@@ -122,14 +122,14 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
         public void run() {
             try {
                 InetAddress local = null;
-                local = InetAddress.getByName("192.168.222.134");
+                local = InetAddress.getByName("192.168.222.136");
 
                 String msg = createDiscoverMsg();
 
                 DatagramPacket pkt = new DatagramPacket(msg.getBytes(), msg.length(),local, mPort);
 
                 mSocket.send(pkt);
-                Log.d("smhz", "Send discovery msg: "+msg + " to "+ local.getHostAddress() + ":" + mPort);
+                Log.d(constants.APP_TAG, "Send discovery msg: "+msg + " to "+ local.getHostAddress() + ":" + mPort);
                 final int msg_max_size = 1500;
                 byte[] buf = new byte[msg_max_size];
                 pkt = new DatagramPacket(buf, msg_max_size);
@@ -140,6 +140,8 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
                         String reply = new String(buf,0,pkt.getLength());
                         JSONObject jObjectData = new JSONObject(reply);
                         if (!jObjectData.getString("id").equals(constants.BOARD_KEYWORD)) continue;    // if non-board response - continue receiving...
+
+                        jObjectData.put("descr",pkt.getAddress().getHostAddress());                 // put board ip addr
                         jObjectData.put("ip_addr",pkt.getAddress().getHostAddress());                 // put board ip addr
                         jObjectData.put("board_type", AbstractBoard.BOARD_TYPE.LOCAL);                  // put board type LOCAL
 
@@ -148,7 +150,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
 
                 }
             } catch (Exception e) {
-                Log.e("smhz", e.toString());
+                Log.e(constants.APP_TAG, e.toString());
                 return;
             }
 
@@ -184,11 +186,11 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
                     jBoard.put("login", mLogin);
                     jBoard.put("password", password);
                     jBoard.put("board_type", AbstractBoard.BOARD_TYPE.REMOTE);
-                    jBoard.put("board_id",jBoard.getString("id"));
+                    jBoard.put("board_id",jBoard.getInt("id"));
                     mHandler.obtainMessage(constants.MESSAGE_NEW_BOARD,jBoard).sendToTarget();
                 }
             } catch (Exception e) {
-                Log.e("smhz", e.toString());
+                Log.e(constants.APP_TAG, e.toString());
             }
 
         }

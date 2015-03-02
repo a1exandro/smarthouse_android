@@ -1,4 +1,4 @@
-package ru.wo0t.smarthouse;
+package ru.wo0t.smarthouse.ui;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -8,13 +8,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import ru.wo0t.smarthouse.R;
 
-public class CamerasFragment extends Fragment {
+
+public class SwitchesFragment extends Fragment {
 
     public static final String ARG_OBJECT = "object";
 
 
-    public CamerasFragment() {
+    public SwitchesFragment() {
         // Required empty public constructor
     }
 
@@ -28,7 +30,7 @@ public class CamerasFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_cameras, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_switches, container, false);
 
         Bundle args = getArguments();
         /*((TextView) rootView.findViewById(android.R.id.text1)).setText(

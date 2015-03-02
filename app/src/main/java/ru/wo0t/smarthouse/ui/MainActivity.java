@@ -1,4 +1,4 @@
-package ru.wo0t.smarthouse;
+package ru.wo0t.smarthouse.ui;
 
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
@@ -15,7 +15,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import ru.wo0t.smarthouse.board.boardsManager;
+import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.common.constants;
 
 public class MainActivity extends FragmentActivity {
@@ -28,7 +28,7 @@ public class MainActivity extends FragmentActivity {
 
         setContentView(R.layout.activity_main);
 
-        Log.d("smhz","Starting the program");
+        Log.d(constants.APP_TAG,"Starting the program");
 
         try {
             Thread.sleep(5000);     // wait for emulator
@@ -77,22 +77,17 @@ public class MainActivity extends FragmentActivity {
                                         }
                                 ));
             }
-
-
-
-        } catch (Exception e) {
-            Log.e(constants.APP_TAG, e.toString());
-        }
-
-
-        try {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            String login = pref.getString("remote_login","");
-            String password = pref.getString("remote_password","");
-            new boardsManager(this).lookUpForBoards(constants.LOCAL_BOARD_PORT, login, password);
+            int defaultBoard = pref.getInt("default_board",-1);
+            if (defaultBoard == -1)
+            {
+                Intent intent = new Intent(this, BoardsLookupActivity.class);
+                startActivity(intent);
+            }
         } catch (Exception e) {
             Log.e(constants.APP_TAG, e.toString());
         }
+
     }
 
     @Override
@@ -112,7 +107,7 @@ public class MainActivity extends FragmentActivity {
                 startActivity(intent);
             } break;
             case R.id.action_boards_lookup: {
-                Intent intent = new Intent(this, BoardsLookup.class);
+                Intent intent = new Intent(this, BoardsLookupActivity.class);
                 startActivity(intent);
             } break;
             default:  return super.onOptionsItemSelected(item);

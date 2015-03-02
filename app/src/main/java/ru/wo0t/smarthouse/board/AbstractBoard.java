@@ -112,39 +112,31 @@ abstract public class AbstractBoard {
             switch (msg.what) {
 
                 case constants.MESSAGE_CONNECTED:
-                    sendBroadcastMsg(boardsManager.BOARD_CONNECTED);
+                    sendBroadcastMsg(boardsManager.MSG_BOARD_CONNECTED);
                     sendPkt(new String(SENSORS_CFG_REQ + SWITCHES_CFG_REQ + CAME_CFG_REQ).getBytes());
                     break;
                 case constants.MESSAGE_NEW_MSG:
                     byte[] data = msg.getData().getByteArray(constants.MESSAGE_DATA);
-                    sendBroadcastMsg(boardsManager.BOARD_NEW_MESSAGE,msg.getData().getString(constants.MESSAGE_INFO) +" " + new String(data));
+                    sendBroadcastMsg(boardsManager.MSG_BOARD_NEW_MESSAGE,msg.getData().getString(constants.MESSAGE_INFO) +" " + new String(data));
                     messageParser(new String(data));
                     break;
             }
         }
     };
 
-    private void sendBroadcastMsg(String event, String data) {
+   private void sendBroadcastMsg(String event, String data) {
         Bundle args = new Bundle();
-        args.putString(boardsManager.BROADCAST_MSG_TYPE,event);
         args.putString(boardsManager.BROADCAST_MSG_DESCR,data);
-        sendBroadcastMsg(args);
+        sendBroadcastMsg(event, args);
     }
 
     private void sendBroadcastMsg(String event) {
         Bundle args = new Bundle();
-        args.putString(boardsManager.BROADCAST_MSG_TYPE, event);
-        sendBroadcastMsg(args);
+        sendBroadcastMsg(event, new Bundle());
     }
 
-    private void sendBroadcastMsg(String event, Bundle data) {
-        Bundle args = new Bundle();
-        args.putString(boardsManager.BROADCAST_MSG_TYPE, event);
-        args.putBundle(boardsManager.BOARD_DATA, data);
-        sendBroadcastMsg(args);
-    }
-    private void sendBroadcastMsg(Bundle args) {
-        Intent intent = new Intent(boardsManager.BROADCAST_MSG);
+    private void sendBroadcastMsg(String event, Bundle args) {
+        Intent intent = new Intent(event);
 
         args.putInt(boardsManager.BOARD_ID, mBoardId);
         args.putInt(boardsManager.BOARD_ID, mBoardType.ordinal());
@@ -182,7 +174,7 @@ abstract public class AbstractBoard {
                             addSens(sens);
                     }
                     onSystemCfgChanged(sensSystem);
-                    sendBroadcastMsg(boardsManager.BOARD_CFG_CHANGED);
+                    sendBroadcastMsg(boardsManager.MSG_BOARD_CFG_CHANGED);
                     break;
                 default:
                     if (jData.has("addr") && jData.has("data")) {
@@ -197,7 +189,7 @@ abstract public class AbstractBoard {
                             sensData.putInt(boardsManager.SENSOR_TYPE, sens.getType().ordinal());
                             sensData.putDouble(boardsManager.SENSOR_VALUE, (double)sens.getVal());
 
-                            sendBroadcastMsg(boardsManager.SENS_DATA, sensData);
+                            sendBroadcastMsg(boardsManager.MSG_SENSOR_DATA, sensData);
                         }
                     }
                     break;
