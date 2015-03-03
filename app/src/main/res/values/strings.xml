@@ -11,4 +11,7 @@
 
     <string name="founded_boards">Найденные платы:</string>
     <string name="action_boards_lookup">Поиск плат</string>
+    <string name="msg_board_discovery_finished">Поиск плат завершен</string>
+    <string name="remoteBoard">Удаленная</string>
+    <string name="BoardRemote">Локальная</string>
 </resources>

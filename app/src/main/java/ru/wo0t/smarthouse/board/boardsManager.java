@@ -10,6 +10,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
+
+import android.support.v4.util.ArrayMap;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -44,6 +46,8 @@ public class boardsManager {
     public static final String SENSOR_VALUE = "SENSOR_VALUE";
     public static final String SENSOR_NAME = "SENSOR_NAME";
 
+    private ArrayMap<Integer,AbstractBoard> mActiveBoards;
+
     private BroadcastReceiver onNotice= new BroadcastReceiver() {
 
         @Override
@@ -73,6 +77,8 @@ public class boardsManager {
         iff.addAction(MSG_BOARD_CFG_CHANGED);
         iff.addAction(MSG_SENSOR_DATA);
         LocalBroadcastManager.getInstance(context).registerReceiver(onNotice, iff);
+
+        mActiveBoards = new ArrayMap<>();
     }
 
     public void lookUpForBoards() {
@@ -87,14 +93,15 @@ public class boardsManager {
     }
 
     public void lookUpForBoards(int remotePort, String login, String password) {
-        boardsDiscover brdDiscover = new boardsDiscover(mHandler, boardsDiscover.LOOKUP_LOCAL_BOARD);
+        boardsDiscover brdDiscover = new boardsDiscover(mHandler, boardsDiscover.LOOKUP_ALL_BOARDS);
 
         brdDiscover.execute(remotePort, login, password);
     }
 
     public void connectToLocalBoard(int board_id, String board_name, String ip_addr) {
         try {
-            new LocalBoard(mContext, AbstractBoard.BOARD_TYPE.LOCAL, board_id, board_name, ip_addr);
+            AbstractBoard board = new LocalBoard(mContext, AbstractBoard.BOARD_TYPE.LOCAL, board_id, board_name, ip_addr);
+            mActiveBoards.put(board_id, board);
         } catch (Exception e) {
             Log.e(constants.APP_TAG, e.toString());
         }
@@ -102,10 +109,17 @@ public class boardsManager {
 
     public void connectToRemoteBoard(int board_id, String board_name, String login, String password) {
         try {
-            new RemoteBoard(mContext, AbstractBoard.BOARD_TYPE.REMOTE,board_id,board_name,login,password);
+            AbstractBoard board = new RemoteBoard(mContext, AbstractBoard.BOARD_TYPE.REMOTE,board_id,board_name,login,password);
+            mActiveBoards.put(board_id, board);
         } catch (Exception e) {
             Log.e(constants.APP_TAG, e.toString());
         }
+    }
+
+    public void closeBoard(int board_id) {
+        AbstractBoard board = mActiveBoards.get(board_id);
+        board.close();
+        mActiveBoards.remove(board_id);
     }
 
     private final Handler mHandler = new Handler() {

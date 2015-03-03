@@ -13,4 +13,11 @@
         android:id="@+id/textView4"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
+    <ListView
+        android:id="@+id/boardsList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_below="@+id/textView4">
+    </ListView>
 </RelativeLayout>

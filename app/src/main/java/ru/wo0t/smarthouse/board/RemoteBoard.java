@@ -31,7 +31,7 @@ public class RemoteBoard extends AbstractBoard {
     private httpClient mClient;
 
     public RemoteBoard(Context context, BOARD_TYPE type, int id, String name, String login, String password) {
-        super(context, type, id);
+        super(context, type, id, name);
         mClient = new httpClient(mHandler, login, password, id);
         mClient.start();
     }
@@ -96,7 +96,13 @@ public class RemoteBoard extends AbstractBoard {
         sendPkt(cmd.getBytes());
 
     }
-////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public void close() {
+        mClient.interrupt();
+        mClient = null;
+    }
+    ////////////////////////////////////////////////////////////////////////////////
 
     private class outMsg {
         public byte[] data;

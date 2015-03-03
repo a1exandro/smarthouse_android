@@ -25,9 +25,9 @@ abstract public class AbstractBoard {
     public static final String SYSTEM_SENSORS = "sensors";
     public static final String SYSTEM_SWITCHES = "switches";
     public static final String SYSTEM_CAME= "camera";
-    protected static final String SENSORS_CFG_REQ = SYSTEM_SENSORS+" get cfg;";
-    protected static final String SWITCHES_CFG_REQ = SYSTEM_SWITCHES+" get cfg;";
-    protected static final String CAME_CFG_REQ = SYSTEM_CAME+" get cfg;";
+    protected static final String SENSORS_CFG_REQ = SYSTEM_SENSORS +" get cfg;";
+    protected static final String SWITCHES_CFG_REQ = SYSTEM_SWITCHES +" get cfg;";
+    protected static final String CAME_CFG_REQ = SYSTEM_CAME +" get cfg;";
 
     public static enum BOARD_TYPE {LOCAL, REMOTE}
 
@@ -35,15 +35,17 @@ abstract public class AbstractBoard {
     protected List<Sensor>mSensors;
     protected String mBoardName;
     protected int mBoardId;
-    protected JSONObject mConfig;
     Context mContext;
 
-    public AbstractBoard(Context context, BOARD_TYPE type, int id) {
+    public AbstractBoard(Context context, BOARD_TYPE type, int id, String name) {
         mBoardType = type;
         mBoardId = id;
         mSensors = new ArrayList<Sensor>();
         mContext = context;
+        mBoardName = name;
     }
+
+    public int getBoardId() { return mBoardId; }
 
     public Sensor getSens(String name) {
         for (int i=0; i<mSensors.size(); i++)
@@ -91,7 +93,7 @@ abstract public class AbstractBoard {
     }
 
     public List<Sensor> getSensors(Sensor.SENSOR_TYPE sType) {
-        List<Sensor> lst = new ArrayList();
+        List<Sensor> lst = new ArrayList<>();
         for (int i=0; i<mSensors.size(); i++)
             if (mSensors.get(i).getType() == sType)
                 lst.add(mSensors.get(i));
@@ -99,7 +101,7 @@ abstract public class AbstractBoard {
     }
 
     public List<Sensor> getSensors(Sensor.SENSOR_SYSTEM system) {
-        List<Sensor> lst = new ArrayList();
+        List<Sensor> lst = new ArrayList<>();
         for (int i=0; i<mSensors.size(); i++)
             if (mSensors.get(i).getSystem() == system)
                 lst.add(mSensors.get(i));
@@ -212,4 +214,5 @@ abstract public class AbstractBoard {
     abstract public void updateSens(Sensor sens);
     abstract public void onSensorAction(Sensor sens, Object param);
     abstract public void sendPkt(byte[] data);
+    abstract public void close();
 }

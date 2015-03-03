@@ -6,11 +6,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
 
 import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.SMHZApp;
@@ -23,10 +32,22 @@ public class BoardsLookupActivity extends Activity {
     public static final String FOUND_NEW_BOARD = "FOUND_NEW_BOARD";
     public static final String BOARDS_DISCOVERY_FINISHED = "BOARDS_DISCOVERY_FINISHED";
 
+    BoardsAdapter mAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lookup_boards);
+        mAdapter = new BoardsAdapter();
+        ListView lvMain = (ListView) findViewById(R.id.boardsList);
+        lvMain.setAdapter(mAdapter);
+
+        lvMain.setOnItemClickListener( new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                boardDescr board = (boardDescr)parent.getItemAtPosition(position);
+                Log.d(constants.APP_TAG, "Connection to board requested: " +board.mDescr);
+            }
+        });
     }
 
     @Override
@@ -35,6 +56,7 @@ public class BoardsLookupActivity extends Activity {
         IntentFilter iff= new IntentFilter(FOUND_NEW_BOARD);
         iff.addAction(BOARDS_DISCOVERY_FINISHED);
 
+        mAdapter.clear();
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(onNotice, iff);
         ((SMHZApp)getApplication()).getBoardsManager().lookUpForBoards();
     }
@@ -74,25 +96,111 @@ public class BoardsLookupActivity extends Activity {
                 Log.d(constants.APP_TAG, "Found new board: " + intent.getStringExtra(boardsManager.BOARD_DESCR));
 
                 AbstractBoard.BOARD_TYPE boardType = AbstractBoard.BOARD_TYPE.valueOf(intent.getStringExtra(boardsManager.BOARD_TYPE));
+                int boardId = intent.getIntExtra(boardsManager.BOARD_ID, -1);
+                String descr = intent.getStringExtra(boardsManager.BOARD_DESCR);
+
+                boardDescr board = new boardDescr();
+                board.mBoardId = boardId;
+                board.mDescr = descr;
+                board.mBoardType = boardType;
+
                 if (boardType == AbstractBoard.BOARD_TYPE.REMOTE) {
-                    int boardId = intent.getIntExtra(boardsManager.BOARD_ID, -1);
-                    String descr = intent.getStringExtra(boardsManager.BOARD_DESCR);
+
                     String login = intent.getStringExtra(boardsManager.BOARD_LOGIN);
                     String pw = intent.getStringExtra(boardsManager.BOARD_PW);
-                    ((SMHZApp) getApplication()).getBoardsManager().connectToRemoteBoard(boardId, descr, login, pw);
+
+                    board.mLogin = login;
+                    board.mPassword = pw;
+                    //((SMHZApp) getApplication()).getBoardsManager().connectToRemoteBoard(boardId, descr, login, pw);
                 }
                 else {
-                    int boardId = intent.getIntExtra(boardsManager.BOARD_ID, -1);
-                    String descr = intent.getStringExtra(boardsManager.BOARD_DESCR);
                     String ipAddr = intent.getStringExtra(boardsManager.BOARD_IP_ADDR);
-                    ((SMHZApp) getApplication()).getBoardsManager().connectToLocalBoard(boardId, descr, ipAddr);
+
+                    board.mIpAddr = ipAddr;
+                    //((SMHZApp) getApplication()).getBoardsManager().connectToLocalBoard(boardId, descr, ipAddr);
                 }
+                mAdapter.addBoard(board);
             }
             else
             if (intent.getAction().equals(BOARDS_DISCOVERY_FINISHED))
             {
+                Toast.makeText(getApplicationContext(), getString(R.string.msg_board_discovery_finished), Toast.LENGTH_LONG).show();
                 Log.d(constants.APP_TAG, "Finishing boards discovery");
             }
         }
     };
+
+///// Adapter
+
+    public class BoardsAdapter extends BaseAdapter {
+        ArrayList<boardDescr> mBoards;
+        LayoutInflater mInflater;
+
+        BoardsAdapter () {
+            mBoards = new ArrayList<>();
+            mInflater = (LayoutInflater) getApplicationContext()
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        }
+
+        @Override
+        public int getCount() {
+            return mBoards.size();
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view = convertView;
+            if (view == null) {
+                view = mInflater.inflate(R.layout.boardslookupactivity_list_item, parent, false);
+            }
+
+            boardDescr board = mBoards.get(position);
+
+            ((TextView) view.findViewById(R.id.itemTxtBoardDescr)).setText(board.mDescr);
+
+            String boardText = "[" + board.mBoardId + "] ";
+            if (board.mBoardType == AbstractBoard.BOARD_TYPE.REMOTE) {
+                boardText += getString(R.string.remoteBoard);
+            }
+            else {
+                boardText += getString(R.string.BoardRemote) + " ("+board.mIpAddr+")";
+            }
+
+            ((TextView) view.findViewById(R.id.itemTxtBoardType)).setText(boardText);
+            return view;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return mBoards.get(position);
+        }
+
+        public void addBoard(boardDescr aBoard) {
+            if (aBoard.mBoardType == AbstractBoard.BOARD_TYPE.REMOTE)
+                mBoards.add(aBoard);    // just add remote board
+            else
+                mBoards.add(0, aBoard); // but local boards goes to the top of the list
+            notifyDataSetChanged();
+        }
+
+        public void clear() {
+            mBoards.clear();
+        }
+    }
+
+// BoardDescription class
+
+    public class boardDescr {
+        public String mDescr;
+        public AbstractBoard.BOARD_TYPE mBoardType;
+        public int mBoardId;
+        public String mIpAddr;
+        public String mLogin;
+        public String mPassword;
+    }
 }

@@ -26,7 +26,7 @@ public class LocalBoard extends AbstractBoard {
     private tcpClient mClient;
 
     public LocalBoard(Context context, BOARD_TYPE type, int id, String name, String ipAddr) {
-        super(context, type, id);
+        super(context, type, id, name);
         mIpAddr = ipAddr;
         mClient = new tcpClient(mHandler,ipAddr,constants.LOCAL_BOARD_PORT);
         mClient.start();
@@ -92,7 +92,14 @@ public class LocalBoard extends AbstractBoard {
         sendPkt(cmd.getBytes());
 
     }
-////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public void close() {
+        mClient.interrupt();
+        mClient = null;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
 
     private class tcpClient extends Thread {
         Socket mSock;
@@ -182,6 +189,11 @@ public class LocalBoard extends AbstractBoard {
 
 
                 }
+            }
+            try {
+                mSock.close();
+            } catch (IOException e) {
+                Log.e(constants.APP_TAG, e.toString());
             }
         }
 
