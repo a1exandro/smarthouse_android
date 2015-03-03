@@ -1,7 +1,10 @@
 package ru.wo0t.smarthouse.board;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Handler;
+import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Base64;
 import android.util.Log;
 
@@ -32,12 +35,16 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
     public final static int LOOKUP_REMOTE_BOARD = 0x01 << 1;
     public final static int LOOKUP_ALL_BOARDS = LOOKUP_LOCAL_BOARD | LOOKUP_REMOTE_BOARD;
 
-    private final Handler mHandler;
+    private final Context mContext;
     private int mLookUpFlag;
     private LocalDiscover mLocalDiscover;
     private RemoteDiscover mRemoteDiscover;
 
-
+    private void sendBroadcastMsg(String event, Bundle args) {
+        Intent intent = new Intent(event);
+        intent.putExtras(args);
+        LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
+    }
     @Override
     protected Boolean doInBackground(Object... params) {
 
@@ -45,15 +52,15 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
         String httpUser = (String)params[1];
         String httpPasswd = (String)params[2];
         getBoardsList(udpPort, httpUser, httpPasswd, mLookUpFlag);
-        mHandler.obtainMessage(constants.MESSAGE_DISCOVERY_FINISHED).sendToTarget();
+        sendBroadcastMsg(boardsManager.MSG_BOARDS_DISCOVERY_FINISHED, new Bundle());
         close();
         return true;
     }
 
 
-    public boardsDiscover(Handler handler, int lookup_flags)
+    public boardsDiscover(Context context, int lookup_flags)
     {
-        mHandler = handler;
+        mContext = context;
         mLookUpFlag = lookup_flags;
     }
 
@@ -81,9 +88,9 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
             mLocalDiscover.close();
             mLocalDiscover = null;
         }
-        if (mLocalDiscover != null) {
-            mLocalDiscover.close();
-            mLocalDiscover = null;
+        if (mRemoteDiscover != null) {
+            mRemoteDiscover.close();
+            mRemoteDiscover = null;
         }
     }
 
@@ -98,7 +105,6 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
                 mSocket = new DatagramSocket(port);
             } catch (SocketException e) {
                 Log.e(constants.APP_TAG, e.toString());
-                return;
             }
         }
 
@@ -121,7 +127,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
 
         public void run() {
             try {
-                InetAddress local = null;
+                InetAddress local;
                 local = InetAddress.getByName("192.168.222.136");
 
                 String msg = createDiscoverMsg();
@@ -139,19 +145,19 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
                     if (pkt.getLength() > 0) {
                         String reply = new String(buf,0,pkt.getLength());
                         JSONObject jObjectData = new JSONObject(reply);
-                        if (!jObjectData.getString("id").equals(constants.BOARD_KEYWORD)) continue;    // if non-board response - continue receiving...
+                        if (!jObjectData.getString("id").equals(constants.LOCAL_BOARD_KEYWORD)) continue;    // if non-board response - continue receiving...
 
-                        jObjectData.put("descr",pkt.getAddress().getHostAddress());                 // put board ip addr
-                        jObjectData.put("ip_addr",pkt.getAddress().getHostAddress());                 // put board ip addr
-                        jObjectData.put("board_type", AbstractBoard.BOARD_TYPE.LOCAL);                  // put board type LOCAL
-
-                        mHandler.obtainMessage(constants.MESSAGE_NEW_BOARD,jObjectData).sendToTarget();
+                        Bundle args = new Bundle();
+                        args.putInt(boardsManager.BOARD_ID, jObjectData.getInt("board_id"));
+                        args.putString(boardsManager.BOARD_DESCR, pkt.getAddress().getHostAddress());
+                        args.putString(boardsManager.BOARD_IP_ADDR, pkt.getAddress().getHostAddress());
+                        args.putString(boardsManager.BOARD_TYPE, AbstractBoard.BOARD_TYPE.LOCAL.toString());
+                        sendBroadcastMsg(boardsManager.MSG_FOUND_NEW_BOARD, args);
                     }
 
                 }
             } catch (Exception e) {
                 Log.e(constants.APP_TAG, e.toString());
-                return;
             }
 
         }
@@ -183,11 +189,14 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
                 for (int i = 0; i < boards.length(); i++) {
                     JSONObject jBoard = boards.getJSONObject(i);
 
-                    jBoard.put("login", mLogin);
-                    jBoard.put("password", password);
-                    jBoard.put("board_type", AbstractBoard.BOARD_TYPE.REMOTE);
-                    jBoard.put("board_id",jBoard.getInt("id"));
-                    mHandler.obtainMessage(constants.MESSAGE_NEW_BOARD,jBoard).sendToTarget();
+                    Bundle args = new Bundle();
+                    args.putInt(boardsManager.BOARD_ID, jBoard.getInt("id"));
+                    args.putString(boardsManager.BOARD_DESCR, jBoard.getString("descr"));
+                    args.putString(boardsManager.BOARD_LOGIN, mLogin);
+                    args.putString(boardsManager.BOARD_PW, password);
+                    args.putString(boardsManager.BOARD_TYPE, AbstractBoard.BOARD_TYPE.REMOTE.toString());
+
+                    sendBroadcastMsg(boardsManager.MSG_FOUND_NEW_BOARD, args);
                 }
             } catch (Exception e) {
                 Log.e(constants.APP_TAG, e.toString());
@@ -229,7 +238,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
             conn.setRequestProperty("Authorization", "Basic " + encoding);
 
             //send POST params
-            Hashtable<String, String> params = new Hashtable<String, String>();
+            Hashtable<String, String> params = new Hashtable<>();
 
             params.put("cmd", cmd);
             params.put("msg", message);
@@ -241,15 +250,13 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
             conn.setRequestProperty( "Content-Length", Integer.toString( postParamsStr.length() ));
             conn.getOutputStream().write(postParamsStr.getBytes("UTF-8"));
 
-            InputStream stream = conn.getInputStream();
-
-            return stream;
+            return conn.getInputStream();
         }
 
         private String getPostParamString(Hashtable<String, String> params) {
             if(params.size() == 0)
                 return "";
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             Enumeration<String> keys = params.keys();
             while(keys.hasMoreElements()) {
                 buf.append(buf.length() == 0 ? "" : "&");
@@ -260,11 +267,11 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
         }
 
         private String readIt(InputStream stream, int len) throws IOException {
-            Reader reader = null;
+            Reader reader;
             reader = new InputStreamReader(stream, "UTF-8");
             char[] buffer = new char[len];
 
-            int readBytes = 0;
+            int readBytes;
             String ret = "";
             while ( (readBytes = reader.read(buffer)) > 0) {
                 String s = new String(buffer,0,readBytes);

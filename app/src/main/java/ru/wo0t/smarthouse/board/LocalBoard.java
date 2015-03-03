@@ -28,7 +28,7 @@ public class LocalBoard extends AbstractBoard {
     public LocalBoard(Context context, BOARD_TYPE type, int id, String name, String ipAddr) {
         super(context, type, id, name);
         mIpAddr = ipAddr;
-        mClient = new tcpClient(mHandler,ipAddr,constants.LOCAL_BOARD_PORT);
+        mClient = new tcpClient(ipAddr,constants.LOCAL_BOARD_PORT);
         mClient.start();
     }
 
@@ -105,11 +105,9 @@ public class LocalBoard extends AbstractBoard {
         Socket mSock;
         String mHost;
         int mPort;
-        Handler mHandler;
         Queue<byte[]> mOutQueue;
 
-        tcpClient(Handler handler,String host, int port) {
-            mHandler = handler;
+        tcpClient(String host, int port) {
             mHost = host;
             mPort = port;
             mOutQueue = new LinkedList<>();
@@ -127,11 +125,7 @@ public class LocalBoard extends AbstractBoard {
             }
             if (mSock.isConnected())
             {
-                Message msg = mHandler.obtainMessage(constants.MESSAGE_CONNECTED);
-                Bundle bundle = new Bundle();
-                bundle.putString(constants.MESSAGE_INFO, "Successfully connected to board "+mHost);
-                msg.setData(bundle);
-                mHandler.sendMessage(msg);
+                onBoardConnected();
                 return true;
             }
             else
@@ -168,12 +162,7 @@ public class LocalBoard extends AbstractBoard {
                             byte[] buf = new byte[len];
                             if (len > 0) {
                                 dis.readFully(buf);
-                                Message msg = mHandler.obtainMessage(constants.MESSAGE_NEW_MSG);
-                                Bundle bundle = new Bundle();
-                                bundle.putString(constants.MESSAGE_INFO, "Recv data from " + mHost);
-                                bundle.putByteArray(constants.MESSAGE_DATA, buf);
-                                msg.setData(bundle);
-                                mHandler.sendMessage(msg);
+                                messageParser(new String(buf));
                             }
                         }
 

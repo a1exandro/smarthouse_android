@@ -32,7 +32,7 @@ public class RemoteBoard extends AbstractBoard {
 
     public RemoteBoard(Context context, BOARD_TYPE type, int id, String name, String login, String password) {
         super(context, type, id, name);
-        mClient = new httpClient(mHandler, login, password, id);
+        mClient = new httpClient(login, password, id);
         mClient.start();
     }
 
@@ -111,21 +111,19 @@ public class RemoteBoard extends AbstractBoard {
     }
     private class httpClient extends Thread {
         String mLogin, mPassword;
-        Handler mHandler;
         String mUrlString = constants.REMOTE_BOARD_URL_STRING;
         int mBoardId;
         int mUpdTime;
         int mSockReadTimeout; // seconds
         Queue<outMsg> mOutQueue;
 
-        httpClient(Handler handler, String login, String password, int board_id) {
-            mHandler = handler;
+        httpClient(String login, String password, int board_id) {
             mLogin = login;
             mPassword = password;
             mBoardId = board_id;
             mUpdTime = 0;
             mSockReadTimeout = 10;
-            mOutQueue = new LinkedList<outMsg>();
+            mOutQueue = new LinkedList<>();
         }
 
         private String loadFromNetwork(String cmd, String message) throws IOException {
@@ -159,7 +157,7 @@ public class RemoteBoard extends AbstractBoard {
             conn.setRequestProperty("Authorization", "Basic " + encoding);
 
             //send POST params
-            Hashtable<String, String> params = new Hashtable<String, String>();
+            Hashtable<String, String> params = new Hashtable<>();
             params.put("board_id", String.valueOf(mBoardId));
             params.put("cmd", cmd);
             params.put("msg", message);
@@ -171,15 +169,13 @@ public class RemoteBoard extends AbstractBoard {
             conn.setRequestProperty( "Content-Length", Integer.toString( postParamsStr.length() ));
             conn.getOutputStream().write(postParamsStr.getBytes("UTF-8"));
 
-            InputStream stream = conn.getInputStream();
-
-            return stream;
+            return conn.getInputStream();
         }
 
         private String getPostParamString(Hashtable<String, String> params) {
             if(params.size() == 0)
                 return "";
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             Enumeration<String> keys = params.keys();
             while(keys.hasMoreElements()) {
                 buf.append(buf.length() == 0 ? "" : "&");
@@ -190,11 +186,11 @@ public class RemoteBoard extends AbstractBoard {
         }
 
         private String readIt(InputStream stream, int len) throws IOException {
-            Reader reader = null;
+            Reader reader;
             reader = new InputStreamReader(stream, "UTF-8");
             char[] buffer = new char[len];
 
-            int readBytes = 0;
+            int readBytes ;
             String ret = "";
             while ( (readBytes = reader.read(buffer)) > 0) {
                 String s = new String(buffer,0,readBytes);
@@ -209,7 +205,7 @@ public class RemoteBoard extends AbstractBoard {
         public void run()
         {
             while (!this.isInterrupted() && mUpdTime == 0) {
-                write("register", new String("").getBytes());
+                write("register", new String().getBytes());
             }
 
             while (!this.isInterrupted())
@@ -221,7 +217,7 @@ public class RemoteBoard extends AbstractBoard {
                     }
                 }
                 else
-                    write("ping", new String("").getBytes());
+                    write("ping", new String().getBytes());
 
                 try {
                     Thread.sleep(constants.REMOTE_BOARD_WAIT_PERIOD);
@@ -258,7 +254,7 @@ public class RemoteBoard extends AbstractBoard {
         private void onMsgRecv(String msgData)
         {
             Log.i(constants.APP_TAG, "Recv: " + msgData);
-            String board_data = "";
+            String board_data;
 
             try {
                 JSONObject jObj = new JSONObject(msgData);
@@ -273,11 +269,7 @@ public class RemoteBoard extends AbstractBoard {
                             if (jObj.getString("answer").equals("OK") )
                             {
                                 mSockReadTimeout = jObj.getInt("timeout");
-                                Message msg = mHandler.obtainMessage(constants.MESSAGE_CONNECTED);
-                                Bundle bundle = new Bundle();
-                                bundle.putString(constants.MESSAGE_INFO, "Successfully connected to remote board");
-                                msg.setData(bundle);
-                                mHandler.sendMessage(msg);
+                                onBoardConnected();
                             }
                         break;
                     }
@@ -290,27 +282,16 @@ public class RemoteBoard extends AbstractBoard {
                 try {
                     Object jObj = new JSONArray(board_data);
 
-                    if (jObj instanceof JSONArray == false) //
+                    if (!(jObj instanceof JSONArray)) //
                     {
-                        Message msg = mHandler.obtainMessage(constants.MESSAGE_NEW_MSG);
-                        Bundle bundle = new Bundle();
-                        bundle.putString(constants.MESSAGE_INFO, "Recv data from " + mUrlString);
-                        bundle.putByteArray(constants.MESSAGE_DATA, board_data.getBytes());
-                        msg.setData(bundle);
-                        mHandler.sendMessage(msg);
+                        messageParser(board_data);
                     }
                     else
                     {
                         JSONArray boardArrData = (JSONArray)jObj;
                         for (int i = 0; i < boardArrData.length(); i++) {
                             String dat = boardArrData.getString(i);
-
-                            Message msg = mHandler.obtainMessage(constants.MESSAGE_NEW_MSG);
-                            Bundle bundle = new Bundle();
-                            bundle.putString(constants.MESSAGE_INFO, "Recv data from " + mUrlString);
-                            bundle.putByteArray(constants.MESSAGE_DATA, dat.getBytes());
-                            msg.setData(bundle);
-                            mHandler.sendMessage(msg);
+                            messageParser(dat);
                         }
                     }
                 } catch (Exception e) {

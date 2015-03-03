@@ -29,9 +29,8 @@ import ru.wo0t.smarthouse.common.constants;
 
 
 public class BoardsLookupActivity extends Activity {
-    public static final String FOUND_NEW_BOARD = "FOUND_NEW_BOARD";
-    public static final String BOARDS_DISCOVERY_FINISHED = "BOARDS_DISCOVERY_FINISHED";
 
+    public static final int REQUEST_CODE_GET_BOARD = 1;
     BoardsAdapter mAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,16 +44,27 @@ public class BoardsLookupActivity extends Activity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 boardDescr board = (boardDescr)parent.getItemAtPosition(position);
-                Log.d(constants.APP_TAG, "Connection to board requested: " +board.mDescr);
+                onBoardSelected(board);
             }
         });
     }
 
+    private void onBoardSelected(boardDescr board) {
+        Intent args = new Intent();
+        args.putExtra(boardsManager.BOARD_ID, board.mBoardId);
+        args.putExtra(boardsManager.BOARD_TYPE, board.mBoardType.toString());
+        args.putExtra(boardsManager.BOARD_IP_ADDR, board.mIpAddr);
+        args.putExtra(boardsManager.BOARD_LOGIN, board.mLogin);
+        args.putExtra(boardsManager.BOARD_PW, board.mPassword);
+        args.putExtra(boardsManager.BOARD_DESCR, board.mDescr);
+        setResult(RESULT_OK,args);
+        finish();
+    }
     @Override
     protected void onResume() {
         super.onResume();
-        IntentFilter iff= new IntentFilter(FOUND_NEW_BOARD);
-        iff.addAction(BOARDS_DISCOVERY_FINISHED);
+        IntentFilter iff= new IntentFilter(boardsManager.MSG_FOUND_NEW_BOARD);
+        iff.addAction(boardsManager.MSG_BOARDS_DISCOVERY_FINISHED);
 
         mAdapter.clear();
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(onNotice, iff);
@@ -91,7 +101,7 @@ public class BoardsLookupActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            if (intent.getAction().equals(FOUND_NEW_BOARD))
+            if (intent.getAction().equals(boardsManager.MSG_FOUND_NEW_BOARD))
             {
                 Log.d(constants.APP_TAG, "Found new board: " + intent.getStringExtra(boardsManager.BOARD_DESCR));
 
@@ -111,18 +121,16 @@ public class BoardsLookupActivity extends Activity {
 
                     board.mLogin = login;
                     board.mPassword = pw;
-                    //((SMHZApp) getApplication()).getBoardsManager().connectToRemoteBoard(boardId, descr, login, pw);
                 }
                 else {
                     String ipAddr = intent.getStringExtra(boardsManager.BOARD_IP_ADDR);
 
                     board.mIpAddr = ipAddr;
-                    //((SMHZApp) getApplication()).getBoardsManager().connectToLocalBoard(boardId, descr, ipAddr);
                 }
                 mAdapter.addBoard(board);
             }
             else
-            if (intent.getAction().equals(BOARDS_DISCOVERY_FINISHED))
+            if (intent.getAction().equals(boardsManager.MSG_BOARDS_DISCOVERY_FINISHED))
             {
                 Toast.makeText(getApplicationContext(), getString(R.string.msg_board_discovery_finished), Toast.LENGTH_LONG).show();
                 Log.d(constants.APP_TAG, "Finishing boards discovery");

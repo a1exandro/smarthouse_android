@@ -40,7 +40,7 @@ abstract public class AbstractBoard {
     public AbstractBoard(Context context, BOARD_TYPE type, int id, String name) {
         mBoardType = type;
         mBoardId = id;
-        mSensors = new ArrayList<Sensor>();
+        mSensors = new ArrayList<>();
         mContext = context;
         mBoardName = name;
     }
@@ -108,32 +108,12 @@ abstract public class AbstractBoard {
         return lst;
     }
 
-    protected final Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-
-                case constants.MESSAGE_CONNECTED:
-                    sendBroadcastMsg(boardsManager.MSG_BOARD_CONNECTED);
-                    sendPkt(new String(SENSORS_CFG_REQ + SWITCHES_CFG_REQ + CAME_CFG_REQ).getBytes());
-                    break;
-                case constants.MESSAGE_NEW_MSG:
-                    byte[] data = msg.getData().getByteArray(constants.MESSAGE_DATA);
-                    sendBroadcastMsg(boardsManager.MSG_BOARD_NEW_MESSAGE,msg.getData().getString(constants.MESSAGE_INFO) +" " + new String(data));
-                    messageParser(new String(data));
-                    break;
-            }
-        }
-    };
-
-   private void sendBroadcastMsg(String event, String data) {
-        Bundle args = new Bundle();
-        args.putString(boardsManager.BROADCAST_MSG_DESCR,data);
-        sendBroadcastMsg(event, args);
+    protected void onBoardConnected() {
+        sendBroadcastMsg(boardsManager.MSG_BOARD_CONNECTED);
+        sendPkt(new String(SENSORS_CFG_REQ + SWITCHES_CFG_REQ + CAME_CFG_REQ).getBytes());
     }
 
     private void sendBroadcastMsg(String event) {
-        Bundle args = new Bundle();
         sendBroadcastMsg(event, new Bundle());
     }
 

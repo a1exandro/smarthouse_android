@@ -16,12 +16,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import ru.wo0t.smarthouse.R;
+import ru.wo0t.smarthouse.SMHZApp;
+import ru.wo0t.smarthouse.board.AbstractBoard;
+import ru.wo0t.smarthouse.board.boardsManager;
 import ru.wo0t.smarthouse.common.constants;
 
 public class MainActivity extends FragmentActivity {
     PagerAdapter mPagerAdapter;
     ViewPager mViewPager;
 
+    private int mBoardId = -1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,7 +86,7 @@ public class MainActivity extends FragmentActivity {
             if (defaultBoard == -1)
             {
                 Intent intent = new Intent(this, BoardsLookupActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, BoardsLookupActivity.REQUEST_CODE_GET_BOARD);
             }
         } catch (Exception e) {
             Log.e(constants.APP_TAG, e.toString());
@@ -108,12 +112,56 @@ public class MainActivity extends FragmentActivity {
             } break;
             case R.id.action_boards_lookup: {
                 Intent intent = new Intent(this, BoardsLookupActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, BoardsLookupActivity.REQUEST_CODE_GET_BOARD);
             } break;
             default:  return super.onOptionsItemSelected(item);
         }
 
         return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        try {
+            switch (requestCode) {
+                case BoardsLookupActivity.REQUEST_CODE_GET_BOARD:
+                {
+                    if (resultCode == RESULT_OK) {
+                        String boardDscr = data.getStringExtra(boardsManager.BOARD_DESCR);
+                        Log.d(constants.APP_TAG, "Connection to board requested: " + boardDscr);
+
+                        if (mBoardId != -1) {
+                            ((SMHZApp) getApplication()).getBoardsManager().closeBoard(mBoardId);
+                            mBoardId = -1;
+                        }
+
+                        AbstractBoard.BOARD_TYPE boardType = AbstractBoard.BOARD_TYPE.valueOf(data.getStringExtra(boardsManager.BOARD_TYPE));
+                        int boardId = data.getIntExtra(boardsManager.BOARD_ID, -1);
+
+                        if (boardType == AbstractBoard.BOARD_TYPE.REMOTE) {
+
+                            String login = data.getStringExtra(boardsManager.BOARD_LOGIN);
+                            String pw = data.getStringExtra(boardsManager.BOARD_PW);
+
+                            ((SMHZApp) getApplication()).getBoardsManager().connectToRemoteBoard(boardId, boardDscr, login, pw);
+                        }
+                        else {
+                            String ipAddr = data.getStringExtra(boardsManager.BOARD_IP_ADDR);
+
+                            ((SMHZApp) getApplication()).getBoardsManager().connectToLocalBoard(boardId, boardDscr, ipAddr);
+                        }
+                        mBoardId = boardId;
+                    }
+                    else
+                        Log.d(constants.APP_TAG, "Board selection has been canceled!");
+                }
+            }
+        }
+        catch (Exception e) {
+            Log.e(constants.APP_TAG, e.toString());
+        }
+
     }
 }
 
