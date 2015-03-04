@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.wo0t.smarthouse.R;
+import ru.wo0t.smarthouse.board.AbstractBoard;
+import ru.wo0t.smarthouse.board.Sensor;
+import ru.wo0t.smarthouse.board.boardsManager;
 
 /**
  * Created by alex on 2/25/15.
@@ -20,43 +23,45 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
 
     private List<Page> mFragments;
 
-    public PagerAdapter(FragmentManager fm, Context context) {
+    public PagerAdapter(FragmentManager fm, Context context, int boardId) {
         super(fm);
         mFragments = new ArrayList<>();
 // INFO
         Fragment fragment = new InfoFragment();
         Bundle args = new Bundle();
-        args.putInt(SensorsFragment.ARG_OBJECT, 1);
+        args.putInt(boardsManager.BOARD_ID, boardId);
+        args.putString(boardsManager.MSG_SYSTEM_NAME, "INFO");
         fragment.setArguments(args);
         Page page = new Page(context, fragment, PageType.INFO);
         mFragments.add(page);
 // SENSORS
         fragment = new SensorsFragment();
         args = new Bundle();
-        args.putInt(SensorsFragment.ARG_OBJECT, 1);
+        args.putInt(boardsManager.BOARD_ID, boardId);
+        args.putString(boardsManager.MSG_SYSTEM_NAME, Sensor.SENSOR_SYSTEM.SENSES.toString());
         fragment.setArguments(args);
         page = new Page(context, fragment, PageType.SENS);
         mFragments.add(page);
 // SWITCHES
         fragment = new SwitchesFragment();
         args = new Bundle();
-        args.putInt(SensorsFragment.ARG_OBJECT, 1);
+        args.putInt(boardsManager.BOARD_ID, boardId);
+        args.putString(boardsManager.MSG_SYSTEM_NAME, Sensor.SENSOR_SYSTEM.SWITCHES.toString());
         fragment.setArguments(args);
         page = new Page(context, fragment, PageType.SWITCH);
         mFragments.add(page);
 // CAMERAS
         fragment = new CamerasFragment();
         args = new Bundle();
-        args.putInt(SensorsFragment.ARG_OBJECT, 1);
+        args.putInt(boardsManager.BOARD_ID, boardId);
+        args.putString(boardsManager.MSG_SYSTEM_NAME, Sensor.SENSOR_SYSTEM.CAMES.toString());
         fragment.setArguments(args);
         page = new Page(context, fragment, PageType.CAME);
         mFragments.add(page);
     }
 
     @Override
-    public Fragment getItem(int i) {
-        return mFragments.get(i).mFragment;
-    }
+    public Fragment getItem(int i) { return mFragments.get(i).mFragment; }
 
     @Override
     public int getCount() {
@@ -91,6 +96,12 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
                     mCaption = context.getResources().getString(R.string.frame_cameras);
                     break;
             }
+        }
+    }
+
+    public void changeBoard(int aBoardId) {
+        for (int i = 0; i < getCount(); i++) {
+            ((BasePageFragment)mFragments.get(i).mFragment).changeBoard(aBoardId);
         }
     }
 }

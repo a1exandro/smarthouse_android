@@ -96,7 +96,7 @@ public class BoardsLookupActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private BroadcastReceiver onNotice= new BroadcastReceiver() {
+    private final BroadcastReceiver onNotice= new BroadcastReceiver() {
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -159,7 +159,7 @@ public class BoardsLookupActivity extends Activity {
         public View getView(int position, View convertView, ViewGroup parent) {
             View view = convertView;
             if (view == null) {
-                view = mInflater.inflate(R.layout.boardslookupactivity_list_item, parent, false);
+                view = mInflater.inflate(R.layout.lvitem_boardslookupactivity, parent, false);
             }
 
             boardDescr board = mBoards.get(position);

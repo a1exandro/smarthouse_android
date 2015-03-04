@@ -42,45 +42,6 @@ public class MainActivity extends FragmentActivity {
         }
 
         try {
-
-            final ActionBar actionBar = getActionBar();
-
-            // Specify that tabs should be displayed in the action bar.
-            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-
-            mPagerAdapter = new PagerAdapter(getSupportFragmentManager(), getApplicationContext());
-
-            mViewPager = (ViewPager) findViewById(R.id.pager);
-            mViewPager.setAdapter(mPagerAdapter);
-
-            mViewPager.setOnPageChangeListener(
-                    new ViewPager.SimpleOnPageChangeListener() {
-                        @Override
-                        public void onPageSelected(int position) {
-                            getActionBar().setSelectedNavigationItem(position);
-                        }
-                    });
-
-            for (int i = 0; i < mPagerAdapter.getCount(); i++) {
-                actionBar.addTab(
-                        actionBar.newTab()
-                                .setText(mPagerAdapter.getPageTitle(i))
-                                .setTabListener(
-                                        new ActionBar.TabListener() {
-                                            public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
-                                                mViewPager.setCurrentItem(tab.getPosition());
-                                            }
-
-                                            public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
-                                                // hide the given tab
-                                            }
-
-                                            public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
-                                                // probably ignore this event
-                                            }
-                                        }
-                                ));
-            }
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             int defaultBoard = pref.getInt("default_board",-1);
             if (defaultBoard == -1)
@@ -88,12 +49,53 @@ public class MainActivity extends FragmentActivity {
                 Intent intent = new Intent(this, BoardsLookupActivity.class);
                 startActivityForResult(intent, BoardsLookupActivity.REQUEST_CODE_GET_BOARD);
             }
+            configureActionBar();
+
         } catch (Exception e) {
             Log.e(constants.APP_TAG, e.toString());
         }
 
     }
 
+    private void configureActionBar() {
+        final ActionBar actionBar = getActionBar();
+
+        // Specify that tabs should be displayed in the action bar.
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        mPagerAdapter = new PagerAdapter(getSupportFragmentManager(), getApplicationContext(),mBoardId);
+
+        mViewPager = (ViewPager) findViewById(R.id.pager);
+        mViewPager.setAdapter(mPagerAdapter);
+
+        mViewPager.setOnPageChangeListener(
+                new ViewPager.SimpleOnPageChangeListener() {
+                    @Override
+                    public void onPageSelected(int position) {
+                        getActionBar().setSelectedNavigationItem(position);
+                    }
+                });
+
+        for (int i = 0; i < mPagerAdapter.getCount(); i++) {
+            actionBar.addTab(
+                    actionBar.newTab()
+                            .setText(mPagerAdapter.getPageTitle(i))
+                            .setTabListener(
+                                    new ActionBar.TabListener() {
+                                        public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
+                                            mViewPager.setCurrentItem(tab.getPosition());
+                                        }
+
+                                        public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
+                                            // hide the given tab
+                                        }
+
+                                        public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
+                                            // probably ignore this event
+                                        }
+                                    }
+                            ));
+        }
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -139,6 +141,7 @@ public class MainActivity extends FragmentActivity {
                         AbstractBoard.BOARD_TYPE boardType = AbstractBoard.BOARD_TYPE.valueOf(data.getStringExtra(boardsManager.BOARD_TYPE));
                         int boardId = data.getIntExtra(boardsManager.BOARD_ID, -1);
 
+                        // connect to remote board
                         if (boardType == AbstractBoard.BOARD_TYPE.REMOTE) {
 
                             String login = data.getStringExtra(boardsManager.BOARD_LOGIN);
@@ -146,12 +149,14 @@ public class MainActivity extends FragmentActivity {
 
                             ((SMHZApp) getApplication()).getBoardsManager().connectToRemoteBoard(boardId, boardDscr, login, pw);
                         }
+                        // connect to local board
                         else {
                             String ipAddr = data.getStringExtra(boardsManager.BOARD_IP_ADDR);
 
                             ((SMHZApp) getApplication()).getBoardsManager().connectToLocalBoard(boardId, boardDscr, ipAddr);
                         }
                         mBoardId = boardId;
+                        mPagerAdapter.changeBoard(boardId);
                     }
                     else
                         Log.d(constants.APP_TAG, "Board selection has been canceled!");

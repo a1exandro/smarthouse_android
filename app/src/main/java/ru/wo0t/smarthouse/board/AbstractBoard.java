@@ -3,8 +3,6 @@ package ru.wo0t.smarthouse.board;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -156,7 +154,9 @@ abstract public class AbstractBoard {
                             addSens(sens);
                     }
                     onSystemCfgChanged(sensSystem);
-                    sendBroadcastMsg(boardsManager.MSG_BOARD_CFG_CHANGED);
+                    Bundle args = new Bundle();
+                    args.putString(boardsManager.MSG_SYSTEM_NAME, system);
+                    sendBroadcastMsg(boardsManager.MSG_BOARD_CFG_CHANGED, args);
                     break;
                 default:
                     if (jData.has("addr") && jData.has("data")) {
@@ -170,6 +170,7 @@ abstract public class AbstractBoard {
                             sensData.putString(boardsManager.SENSOR_ADDR, sens.getAddr());
                             sensData.putInt(boardsManager.SENSOR_TYPE, sens.getType().ordinal());
                             sensData.putDouble(boardsManager.SENSOR_VALUE, (double)sens.getVal());
+                            sensData.putString(boardsManager.MSG_SYSTEM_NAME, sensSystem.toString());
 
                             sendBroadcastMsg(boardsManager.MSG_SENSOR_DATA, sensData);
                         }

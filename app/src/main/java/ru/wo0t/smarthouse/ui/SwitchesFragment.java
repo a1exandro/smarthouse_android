@@ -1,40 +1,51 @@
 package ru.wo0t.smarthouse.ui;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import ru.wo0t.smarthouse.R;
+import ru.wo0t.smarthouse.board.Sensor;
 
 
-public class SwitchesFragment extends Fragment {
-
-    public static final String ARG_OBJECT = "object";
-
-
-    public SwitchesFragment() {
-        // Required empty public constructor
-    }
+public class SwitchesFragment extends BasePageFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-
-        }
     }
 
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        View view = convertView;
+        if (view == null) {
+            view = mInflater.inflate(R.layout.lvitem_boardslookupactivity, parent, false);
+        }
+
+        Sensor sensor = (Sensor)mAdapter.getItem(position);
+
+        ((TextView) view.findViewById(R.id.itemSwitcheName)).setText(sensor.getName());
+
+        return view;
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_switches, container, false);
 
-        Bundle args = getArguments();
-        /*((TextView) rootView.findViewById(android.R.id.text1)).setText(
-                Integer.toString(args.getInt(ARG_OBJECT)));*/
+        ListView lvMain = (ListView) rootView.findViewById(R.id.lwSwitches);
+        lvMain.setAdapter(mAdapter);
+
+        lvMain.setOnItemClickListener( new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Sensor sensor = (Sensor)parent.getItemAtPosition(position);
+                onItemSelected(sensor);
+            }
+        });
 
         return rootView;
 

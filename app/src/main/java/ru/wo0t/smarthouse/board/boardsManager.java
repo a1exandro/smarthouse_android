@@ -33,6 +33,7 @@ public class boardsManager {
     public static final String MSG_SENSOR_DATA = "MSG_SENSOR_DATA";
     public static final String MSG_FOUND_NEW_BOARD = "MSG_FOUND_NEW_BOARD";
     public static final String MSG_BOARDS_DISCOVERY_FINISHED = "MSG_BOARDS_DISCOVERY_FINISHED";
+    public static final String MSG_SYSTEM_NAME = "MSG_SYSTEM_NAME";
 
     public static final String BOARD_ID = "BOARD_ID";
     public static final String BOARD_TYPE = "BOARD_TYPE";
@@ -108,5 +109,9 @@ public class boardsManager {
         board.close();
         mActiveBoards.remove(board_id);
         Log.d(constants.APP_TAG, "Close board requested: " + board.mBoardName);
+    }
+
+    public AbstractBoard getBoard(int aBoardId) {
+        return mActiveBoards.get(aBoardId);
     }
 }

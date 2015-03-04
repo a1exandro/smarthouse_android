@@ -3,7 +3,7 @@
     <string name="app_name">smartHouse</string>
     <string name="action_settings">Настройки</string>
 
-    <string name="frame_info">Инфо</string>
+    <string name="frame_info">Информация</string>
     <string name="frame_sensors">Датчики</string>
     <string name="frame_switches">Переключатели</string>
     <string name="frame_cameras">Камеры</string>
