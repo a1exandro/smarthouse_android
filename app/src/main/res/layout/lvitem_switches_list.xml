@@ -4,15 +4,6 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:theme="@style/Base.Theme.AppCompat.Light">
-    <TextView
-        android:id="@+id/itemSwitcheName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:text="Switch 1"
-        android:textSize="20sp"
-        android:textStyle="bold">
-    </TextView>
 
     <Switch
         android:layout_width="wrap_content"
@@ -20,6 +11,7 @@
         android:text="New Switch"
         android:id="@+id/itemSwitch"
         android:checked="false"
-        android:layout_gravity="end" />
+        android:layout_gravity="end"
+        android:gravity="center_vertical" />
 
 </LinearLayout>

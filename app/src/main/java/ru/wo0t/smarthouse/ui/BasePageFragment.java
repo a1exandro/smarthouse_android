@@ -30,24 +30,25 @@ import ru.wo0t.smarthouse.common.constants;
  * Created by alex on 3/4/15.
  */
 abstract public class BasePageFragment extends Fragment{
-    protected final String ITEM_RESOURCE_ID = "ITEM_RESOURCE_ID";
 
-    protected int mBoardId;
+    protected int mBoardId =-1;
     protected String mSystem;
     protected LayoutInflater mInflater;
     protected SensorsAdapter mAdapter;
 
-    abstract View getView(int position, View convertView, ViewGroup parent);
+    abstract View getLWItemView(int position, View convertView, ViewGroup parent);
+    private int getCustomLwItemsCount() { return 0; }
 
-    void onItemSelected(Sensor sensor) {
-
+    protected AbstractBoard getBoard() {
+        return ((SMHZApp) getActivity().getApplication()).getBoardsManager().getBoard(getBoardId());
     }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             Bundle args = getArguments();
-            mBoardId = args.getInt(boardsManager.BOARD_ID);
+            if (mBoardId == -1)
+                mBoardId = args.getInt(boardsManager.BOARD_ID);
             mSystem = args.getString(boardsManager.MSG_SYSTEM_NAME);
             mAdapter = new SensorsAdapter();
         }
@@ -55,15 +56,14 @@ abstract public class BasePageFragment extends Fragment{
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    public void changeBoard(int aBoardId) {
-        mBoardId = aBoardId;
-    }
+    public void changeBoard(int aBoardId) { mBoardId = aBoardId; }
+
+    public int getBoardId() { return mBoardId; }
 
     @Override
     public void onResume() {
         super.onResume();
         IntentFilter iff= new IntentFilter(boardsManager.MSG_BOARD_CFG_CHANGED);
-        iff.addAction(boardsManager.MSG_SENSOR_DATA);
         LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).registerReceiver(onNotice, iff);
     }
 
@@ -77,24 +77,15 @@ abstract public class BasePageFragment extends Fragment{
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            AbstractBoard board = ((SMHZApp) getActivity().getApplication()).getBoardsManager().getBoard(mBoardId);
-            if (intent.getAction().equals(boardsManager.MSG_BOARD_CFG_CHANGED))
-            {
-                String system = intent.getStringExtra(boardsManager.MSG_SYSTEM_NAME);
-                if (mSystem.equals(system)) {   // out system cfg changed
-                    mAdapter.clear();
-                    List<Sensor> sensLst = board.getSensors(Sensor.SENSOR_SYSTEM.valueOf(mSystem));
-                    mAdapter.addSensors(sensLst);
-                    Log.d(constants.APP_TAG, system + " system configuration changed: " + intent.getStringExtra(boardsManager.BOARD_DESCR));
-                }
-            }
-            else
-            if (intent.getAction().equals(boardsManager.MSG_SENSOR_DATA))
-            {
-                int boardId = intent.getIntExtra(boardsManager.BOARD_ID,-1);
-                String sensSystem = intent.getStringExtra(boardsManager.MSG_SYSTEM_NAME);
-                if (boardId != -1 && boardId == mBoardId && mSystem.equals(sensSystem)) {   // our board's sensor changed
-                    Log.d(constants.APP_TAG, "Sensor val changed " + intent.getStringExtra(boardsManager.SENSOR_NAME));
+            int boardId = intent.getIntExtra(boardsManager.BOARD_ID,-1);
+
+            if (boardId == getBoardId()) {
+                if (intent.getAction().equals(boardsManager.MSG_BOARD_CFG_CHANGED)) {
+                    String system = intent.getStringExtra(boardsManager.MSG_SYSTEM_NAME);
+
+                    if (mSystem.equals(system)) {   // our system cfg changed
+                        mAdapter.onCfgChanged();
+                    }
                 }
             }
         }
@@ -103,20 +94,29 @@ abstract public class BasePageFragment extends Fragment{
 ///// Adapter
 
     public class SensorsAdapter extends BaseAdapter {
-        ArrayList<Sensor> mSensors;
-
-        SensorsAdapter () {
-            mSensors = new ArrayList<>();
-        }
 
         @Override
         public int getCount() {
-            return mSensors.size();
+            AbstractBoard board = getBoard();
+            int size = 0;
+            if (board != null) {
+                try {
+                    size = board.getSensors(Sensor.SENSOR_SYSTEM.valueOf(mSystem)).size();
+                }
+                catch (Exception e) {
+                    size = getCustomLwItemsCount();
+                }
+
+            }
+            return size;
         }
 
+        public void onCfgChanged() {
+            notifyDataSetChanged();
+        }
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            return getView(position, convertView, parent);
+            return getLWItemView(position, convertView, parent);
         }
 
         @Override
@@ -126,21 +126,17 @@ abstract public class BasePageFragment extends Fragment{
 
         @Override
         public Object getItem(int position) {
-            return mSensors.get(position);
-        }
-
-        public void addSensor(Sensor aSensor) {
-            mSensors.add(aSensor);
-            notifyDataSetChanged();
-        }
-
-        public void addSensors(List<Sensor> aSensors) {
-            mSensors.addAll(aSensors);
-            notifyDataSetChanged();
-        }
-
-        public void clear() {
-            mSensors.clear();
+            AbstractBoard board = getBoard();
+            Sensor sens = null;
+            if (board != null) {
+                try {
+                    sens = board.getSensors(Sensor.SENSOR_SYSTEM.valueOf(mSystem)).get(position);
+                }
+                catch (Exception e) {
+                    Log.e(constants.APP_TAG, "Could not find sensor at pos "+position);
+                }
+            }
+            return sens;
         }
     }
 }

@@ -71,7 +71,7 @@ public class LocalBoard extends AbstractBoard {
         String cmd = "";
         switch (sens.getSystem()){
             case SWITCHES:
-                cmd = SYSTEM_SWITCHES + " set " + "p" + sens.getAddr() + "=" + param ;
+                cmd = SYSTEM_SWITCHES + " set " + "p" + sens.getAddr() + "=" + String.valueOf(param) ;
                 break;
             case SENSES:
                 String tpStr = "";

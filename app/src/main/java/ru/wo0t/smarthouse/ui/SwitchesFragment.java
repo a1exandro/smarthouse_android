@@ -1,35 +1,54 @@
 package ru.wo0t.smarthouse.ui;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.board.Sensor;
+import ru.wo0t.smarthouse.common.constants;
 
 
 public class SwitchesFragment extends BasePageFragment {
-
+    private static final int ITEM_TAG = 1;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
+    void onItemSelected(Sensor sensor, boolean val) {
+        getBoard().onSensorAction(sensor, val? 1:0);
+    }
+
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getLWItemView(int position, View convertView, ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            view = mInflater.inflate(R.layout.lvitem_boardslookupactivity, parent, false);
+            view = mInflater.inflate(R.layout.lvitem_switches_list, parent, false);
         }
 
         Sensor sensor = (Sensor)mAdapter.getItem(position);
 
-        ((TextView) view.findViewById(R.id.itemSwitcheName)).setText(sensor.getName());
-
+        if (sensor != null) {
+            ((Switch) view.findViewById(R.id.itemSwitch)).setText(sensor.getName());
+            ((Switch) view.findViewById(R.id.itemSwitch)).setTag(R.id.TAG_LWSWITCHES_ITEM_ID, position);
+            ((Switch) view.findViewById(R.id.itemSwitch)).setOnCheckedChangeListener( new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Sensor sens = (Sensor)mAdapter.getItem( (int)buttonView.getTag(R.id.TAG_LWSWITCHES_ITEM_ID));
+                    onItemSelected(sens, isChecked);
+                }
+            });
+        }
+        else
+            Log.d(constants.APP_TAG, "could not find switch at pos " + position);
         return view;
     }
     @Override
@@ -38,14 +57,6 @@ public class SwitchesFragment extends BasePageFragment {
 
         ListView lvMain = (ListView) rootView.findViewById(R.id.lwSwitches);
         lvMain.setAdapter(mAdapter);
-
-        lvMain.setOnItemClickListener( new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Sensor sensor = (Sensor)parent.getItemAtPosition(position);
-                onItemSelected(sensor);
-            }
-        });
 
         return rootView;
 

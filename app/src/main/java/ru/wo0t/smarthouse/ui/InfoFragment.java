@@ -16,16 +16,15 @@ import ru.wo0t.smarthouse.board.Sensor;
 
 public class InfoFragment extends BasePageFragment {
 
-    @Override
     void onItemSelected(Sensor sensor) {
 
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getLWItemView(int position, View convertView, ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            view = mInflater.inflate(R.layout.lvitem_boardslookupactivity, parent, false);
+            view = mInflater.inflate(R.layout.lvitem_info_list, parent, false);
         }
 
         return view;

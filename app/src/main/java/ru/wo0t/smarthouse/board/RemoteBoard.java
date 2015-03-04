@@ -75,7 +75,7 @@ public class RemoteBoard extends AbstractBoard {
         String cmd = "";
         switch (sens.getSystem()){
             case SWITCHES:
-                cmd = SYSTEM_SWITCHES + " set " + "p" + sens.getAddr() + "=" + param ;
+                cmd = SYSTEM_SWITCHES + " set " + "p" + sens.getAddr() + "=" + String.valueOf(param) ;
                 break;
             case SENSES:
                 String tpStr = "";
@@ -116,6 +116,7 @@ public class RemoteBoard extends AbstractBoard {
         int mUpdTime;
         int mSockReadTimeout; // seconds
         Queue<outMsg> mOutQueue;
+        HttpURLConnection mConn;
 
         httpClient(String login, String password, int board_id) {
             mLogin = login;
@@ -144,17 +145,17 @@ public class RemoteBoard extends AbstractBoard {
         private InputStream downloadUrl(String cmd, String message) throws IOException {
 
             URL url = new URL(mUrlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(mSockReadTimeout * 1000 + 3000/* milliseconds */);
-            conn.setConnectTimeout(15000 /* milliseconds */);
-            conn.setRequestMethod("POST");
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
+            mConn = (HttpURLConnection) url.openConnection();
+            mConn.setReadTimeout(mSockReadTimeout * 1000 + 3000/* milliseconds */);
+            mConn.setConnectTimeout(15000 /* milliseconds */);
+            mConn.setRequestMethod("POST");
+            mConn.setDoInput(true);
+            mConn.setDoOutput(true);
 
             // set basic auth
             String userPassword = constants.REMOTE_BOARD_USER + ":" + constants.REMOTE_BOARD_PASSWORD;
             String encoding = Base64.encodeToString(userPassword.getBytes(),Base64.DEFAULT);
-            conn.setRequestProperty("Authorization", "Basic " + encoding);
+            mConn.setRequestProperty("Authorization", "Basic " + encoding);
 
             //send POST params
             Hashtable<String, String> params = new Hashtable<>();
@@ -165,11 +166,11 @@ public class RemoteBoard extends AbstractBoard {
             params.put("login", mLogin);
             params.put("password", mPassword);
             String postParamsStr = getPostParamString(params);
-            conn.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded");
-            conn.setRequestProperty( "Content-Length", Integer.toString( postParamsStr.length() ));
-            conn.getOutputStream().write(postParamsStr.getBytes("UTF-8"));
+            mConn.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded");
+            mConn.setRequestProperty( "Content-Length", Integer.toString( postParamsStr.length() ));
+            mConn.getOutputStream().write(postParamsStr.getBytes("UTF-8"));
 
-            return conn.getInputStream();
+            return mConn.getInputStream();
         }
 
         private String getPostParamString(Hashtable<String, String> params) {
@@ -218,13 +219,6 @@ public class RemoteBoard extends AbstractBoard {
                 }
                 else
                     write("ping", new String().getBytes());
-
-                try {
-                    Thread.sleep(constants.REMOTE_BOARD_WAIT_PERIOD);
-
-                } catch (InterruptedException e) {
-                    Log.e(constants.APP_TAG, e.toString());
-                }
             }
         }
 
@@ -234,6 +228,7 @@ public class RemoteBoard extends AbstractBoard {
             msg.cmd = cmd;
             msg.data = buf;
             mOutQueue.add(msg);
+            mConn.disconnect();
         }
 
         public void sendPkt(byte[] buf) {

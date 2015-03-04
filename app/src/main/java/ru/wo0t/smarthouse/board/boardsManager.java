@@ -61,7 +61,7 @@ public class boardsManager {
             @Override
             public void onReceive(Context context, Intent intent) {
 
-                Log.d(constants.APP_TAG, "BROADCAST RECV: " + intent.getAction());
+                //Log.d(constants.APP_TAG, "BROADCAST RECV: " + intent.getAction());
             }
         };
         LocalBroadcastManager.getInstance(context).registerReceiver(onNotice, iff);

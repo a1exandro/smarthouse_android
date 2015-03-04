@@ -18,11 +18,15 @@ public class CamerasFragment extends BasePageFragment {
         super.onCreate(savedInstanceState);
     }
 
+    void onItemSelected(Sensor sensor) {
+        getBoard().onSensorAction(sensor, null);
+    }
+
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getLWItemView(int position, View convertView, ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            view = mInflater.inflate(R.layout.lvitem_boardslookupactivity, parent, false);
+            view = mInflater.inflate(R.layout.lvitem_cameras_list, parent, false);
         }
 
         Sensor sensor = (Sensor)mAdapter.getItem(position);
@@ -34,7 +38,7 @@ public class CamerasFragment extends BasePageFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_cameras, container, false);
 
-        ListView lvMain = (ListView) rootView.findViewById(R.id.lwInfo);
+        ListView lvMain = (ListView) rootView.findViewById(R.id.lwCameras);
         lvMain.setAdapter(mAdapter);
 
         lvMain.setOnItemClickListener( new AdapterView.OnItemClickListener() {

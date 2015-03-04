@@ -1,6 +1,7 @@
 package ru.wo0t.smarthouse.ui;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,28 +11,39 @@ import android.widget.TextView;
 
 import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.board.Sensor;
+import ru.wo0t.smarthouse.common.constants;
 
 
 public class SensorsFragment extends BasePageFragment {
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onCreate(Bundle savedInstanceState) { super.onCreate(savedInstanceState); }
 
+    void onItemSelected(Sensor sensor) {
+        getBoard().onSensorAction(sensor, null);
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getLWItemView(int position, View convertView, ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            view = mInflater.inflate(R.layout.lvitem_boardslookupactivity, parent, false);
+            view = mInflater.inflate(R.layout.lvitem_sensors_list, parent, false);
         }
 
-        Sensor sensor = (Sensor)mAdapter.getItem(position);
+        Sensor sensor = (Sensor)(mAdapter.getItem(position));
 
-        ((TextView) view.findViewById(R.id.itemSenseName)).setText(sensor.getName());
-        ((TextView) view.findViewById(R.id.itemSensVal)).setText( String.valueOf((double)sensor.getVal()) );
+        if (sensor != null) {
 
+            try {
+                ((TextView) view.findViewById(R.id.itemSenseName)).setText(sensor.getName());
+                ((TextView) view.findViewById(R.id.itemSensVal)).setText(String.valueOf((double) sensor.getVal()));
+            }
+            catch (Exception e) {
+                Log.e(constants.APP_TAG, e.toString());
+            }
+        }
+        else
+            Log.d(constants.APP_TAG, "could not find sensor at pos " + position);
         return view;
     }
 

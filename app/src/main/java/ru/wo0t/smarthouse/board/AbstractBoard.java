@@ -54,7 +54,7 @@ abstract public class AbstractBoard {
 
     public Sensor getSensByAddr(String addr) {
         for (int i=0; i<mSensors.size(); i++)
-            if (mSensors.get(i).getAddr().equals(addr))
+            if ( mSensors.get(i).getAddr()!= null && mSensors.get(i).getAddr().equals(addr))
                 return mSensors.get(i);
         return null;
     }
@@ -119,7 +119,8 @@ abstract public class AbstractBoard {
         Intent intent = new Intent(event);
 
         args.putInt(boardsManager.BOARD_ID, mBoardId);
-        args.putInt(boardsManager.BOARD_ID, mBoardType.ordinal());
+        args.putString(boardsManager.BOARD_TYPE, mBoardType.toString());
+        args.putString(boardsManager.BOARD_DESCR, mBoardName);
 
         intent.putExtras(args);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
@@ -145,6 +146,7 @@ abstract public class AbstractBoard {
             switch (jData.getString("type")) {
                 case "cfg":
                     JSONObject jDataSens = new JSONObject(jData.getString("data"));
+                    if (!jDataSens.has(system)) return;
                     JSONArray sensors = jDataSens.getJSONArray(system);
                     for (int i = 0; i < sensors.length(); i++) {
                         JSONObject jSens = sensors.getJSONObject(i);
@@ -155,11 +157,11 @@ abstract public class AbstractBoard {
                     }
                     onSystemCfgChanged(sensSystem);
                     Bundle args = new Bundle();
-                    args.putString(boardsManager.MSG_SYSTEM_NAME, system);
+                    args.putString(boardsManager.MSG_SYSTEM_NAME, sensSystem.toString());
                     sendBroadcastMsg(boardsManager.MSG_BOARD_CFG_CHANGED, args);
                     break;
                 default:
-                    if (jData.has("addr") && jData.has("data")) {
+                    if (jData.has("addr")) {
                         Sensor sens = getSensByAddr(jData.getString("addr"));
                         if (sens != null) {
                             sens.setVal(jData.getDouble("data"));
