@@ -38,21 +38,27 @@ public class MainActivity extends FragmentActivity {
             Thread.sleep(5000);     // wait for emulator
 
         } catch (InterruptedException e) {
-            Log.e(constants.APP_TAG, e.toString());
+            e.printStackTrace();
         }
+
+        configureActionBar();
 
         try {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            int defaultBoard = pref.getInt("default_board",-1);
-            if (defaultBoard == -1)
-            {
+            int defaultBoard = pref.getInt(boardsManager.BOARD_ID,-1);
+
+            if (defaultBoard == -1) {
                 Intent intent = new Intent(this, BoardsLookupActivity.class);
                 startActivityForResult(intent, BoardsLookupActivity.REQUEST_CODE_GET_BOARD);
             }
-            configureActionBar();
+            else {
+                mPagerAdapter.changeBoard(defaultBoard);
+                ((SMHZApp) getApplication()).getBoardsManager().connectToDefaultBoard();
+            }
 
         } catch (Exception e) {
-            Log.e(constants.APP_TAG, e.toString());
+            e.printStackTrace();
+            e.printStackTrace();
         }
 
     }
@@ -164,7 +170,7 @@ public class MainActivity extends FragmentActivity {
             }
         }
         catch (Exception e) {
-            Log.e(constants.APP_TAG, e.toString());
+            e.printStackTrace();
         }
 
     }

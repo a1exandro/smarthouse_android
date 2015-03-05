@@ -62,6 +62,31 @@ public class boardsManager {
             public void onReceive(Context context, Intent intent) {
 
                 //Log.d(constants.APP_TAG, "BROADCAST RECV: " + intent.getAction());
+                switch (intent.getAction()) {
+                    case MSG_BOARD_CONNECTED: {
+                        int boardId = intent.getIntExtra(BOARD_ID,-1);
+                        AbstractBoard board = getBoard(boardId);
+                        AbstractBoard.BOARD_TYPE boardType = board.getBoardType();
+                        String boardName = board.getBoardName();
+
+                        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+
+                        pref.edit().putInt(BOARD_ID, boardId).apply();
+                        pref.edit().putString(BOARD_TYPE, boardType.toString()).apply();
+                        pref.edit().putString(BOARD_DESCR, boardName).apply();
+
+                        if (boardType == AbstractBoard.BOARD_TYPE.LOCAL) {
+                            String ipAddr = ((LocalBoard)board).getIpAddr();
+                            pref.edit().putString(BOARD_IP_ADDR, ipAddr).apply();
+                        }
+                        else {
+                            String login = ((RemoteBoard)board).getLogin();
+                            String password = ((RemoteBoard)board).getPassword();
+                            pref.edit().putString(BOARD_LOGIN, login).apply();
+                            pref.edit().putString(BOARD_PW, password).apply();
+                        }
+                    } break;
+                }
             }
         };
         LocalBroadcastManager.getInstance(context).registerReceiver(onNotice, iff);
@@ -69,6 +94,25 @@ public class boardsManager {
         mActiveBoards = new ArrayMap<>();
     }
 
+    public void connectToDefaultBoard() {
+        try {
+            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+            int boardId = pref.getInt(boardsManager.BOARD_ID, -1);
+            AbstractBoard.BOARD_TYPE boardType = AbstractBoard.BOARD_TYPE.valueOf(pref.getString(BOARD_TYPE, ""));
+            String boardName = pref.getString(BOARD_DESCR,"");
+            Log.d(constants.APP_TAG, "Connection to default board requested: " + boardName);
+            if (boardType == AbstractBoard.BOARD_TYPE.LOCAL) {
+                String ipAddr = pref.getString(BOARD_IP_ADDR,"");
+                connectToLocalBoard(boardId,boardName,ipAddr);
+            }
+            else {
+                String login = pref.getString(BOARD_LOGIN,"");
+                String password = pref.getString(BOARD_PW,"");
+                connectToRemoteBoard(boardId, boardName, login, password);
+            }
+        }
+        catch (Exception e) { e.printStackTrace(); }
+    }
     public void lookUpForBoards() {
         try {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -76,7 +120,7 @@ public class boardsManager {
             String password = pref.getString("remote_password","");
             lookUpForBoards(constants.LOCAL_BOARD_PORT, login, password);
         } catch (Exception e) {
-            Log.e(constants.APP_TAG, e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -91,7 +135,7 @@ public class boardsManager {
             AbstractBoard board = new LocalBoard(mContext, AbstractBoard.BOARD_TYPE.LOCAL, board_id, board_name, ip_addr);
             mActiveBoards.put(board_id, board);
         } catch (Exception e) {
-            Log.e(constants.APP_TAG, e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -100,7 +144,7 @@ public class boardsManager {
             AbstractBoard board = new RemoteBoard(mContext, AbstractBoard.BOARD_TYPE.REMOTE,board_id,board_name,login,password);
             mActiveBoards.put(board_id, board);
         } catch (Exception e) {
-            Log.e(constants.APP_TAG, e.toString());
+            e.printStackTrace();
         }
     }
 

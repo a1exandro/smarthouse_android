@@ -46,6 +46,12 @@ public class SwitchesFragment extends BasePageFragment {
                     onItemSelected(sens, isChecked);
                 }
             });
+
+            if (sensor.getVal() != null)
+            {
+                int val = (int)sensor.getVal();
+                ((Switch) view.findViewById(R.id.itemSwitch)).setChecked(val == 1);
+            }
         }
         else
             Log.d(constants.APP_TAG, "could not find switch at pos " + position);

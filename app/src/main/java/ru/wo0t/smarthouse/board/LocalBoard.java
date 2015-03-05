@@ -32,6 +32,8 @@ public class LocalBoard extends AbstractBoard {
         mClient.start();
     }
 
+    public String getIpAddr() { return mIpAddr; }
+
     public void sendPkt(byte[] pkt) {
         if (pkt.length == 0) return;
         tcpClient cl;
@@ -65,32 +67,6 @@ public class LocalBoard extends AbstractBoard {
                 break;
         }
         sendPkt(cmd.getBytes());
-    }
-
-    public void onSensorAction(Sensor sens, Object param) {
-        String cmd = "";
-        switch (sens.getSystem()){
-            case SWITCHES:
-                cmd = SYSTEM_SWITCHES + " set " + "p" + sens.getAddr() + "=" + String.valueOf(param) ;
-                break;
-            case SENSES:
-                String tpStr = "";
-                switch (sens.getType()) {
-                    case TEMP:
-                        tpStr = "T";
-                        break;
-                    case DIGITAL:
-                        tpStr = "D";
-                        break;
-                }
-                cmd = SYSTEM_SENSORS + " get " + tpStr+ sens.getAddr();
-                break;
-            case CAMES:
-                cmd = SYSTEM_CAME + " get " + "c" + sens.getAddr();
-                break;
-        }
-        sendPkt(cmd.getBytes());
-
     }
 
     @Override
@@ -148,7 +124,7 @@ public class LocalBoard extends AbstractBoard {
                         Thread.sleep(constants.LOCAL_BOARD_RECONNECT_TIME);
 
                     } catch (InterruptedException e) {
-                        Log.e(constants.APP_TAG, e.toString());
+                        e.printStackTrace();
                     }
                 }
                 while (mSock != null && mSock.isConnected())
@@ -172,7 +148,7 @@ public class LocalBoard extends AbstractBoard {
                         }
 
                     } catch (IOException e) {
-                        Log.e(constants.APP_TAG, e.toString());
+                        e.printStackTrace();
                         mSock = null;
                     }
 
@@ -182,7 +158,7 @@ public class LocalBoard extends AbstractBoard {
             try {
                 mSock.close();
             } catch (IOException e) {
-                Log.e(constants.APP_TAG, e.toString());
+                e.printStackTrace();
             }
         }
 
@@ -200,7 +176,7 @@ public class LocalBoard extends AbstractBoard {
                     dos.write(buf, 0, len);
                 }
             } catch (Exception e) {
-                Log.e(constants.APP_TAG, e.toString());
+                e.printStackTrace();
             }
         }
     }

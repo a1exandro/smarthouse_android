@@ -29,12 +29,17 @@ import ru.wo0t.smarthouse.common.constants;
  */
 public class RemoteBoard extends AbstractBoard {
     private httpClient mClient;
-
+    private String mLogin, mPassword;
     public RemoteBoard(Context context, BOARD_TYPE type, int id, String name, String login, String password) {
         super(context, type, id, name);
+        mLogin = login;
+        mPassword = password;
         mClient = new httpClient(login, password, id);
         mClient.start();
     }
+
+    public String getLogin() { return mLogin; }
+    public String getPassword() { return mPassword; }
 
     public void sendPkt(byte[] pkt) {
         if (pkt.length == 0) return;
@@ -71,38 +76,12 @@ public class RemoteBoard extends AbstractBoard {
         sendPkt(cmd.getBytes());
     }
 
-    public void onSensorAction(Sensor sens, Object param) {
-        String cmd = "";
-        switch (sens.getSystem()){
-            case SWITCHES:
-                cmd = SYSTEM_SWITCHES + " set " + "p" + sens.getAddr() + "=" + String.valueOf(param) ;
-                break;
-            case SENSES:
-                String tpStr = "";
-                switch (sens.getType()) {
-                    case TEMP:
-                        tpStr = "T";
-                        break;
-                    case DIGITAL:
-                        tpStr = "D";
-                        break;
-                }
-                cmd = SYSTEM_SENSORS + " get " + tpStr+ sens.getAddr();
-                break;
-            case CAMES:
-                cmd = SYSTEM_CAME + " get " + "c" + sens.getAddr();
-                break;
-        }
-        sendPkt(cmd.getBytes());
-
-    }
-
     @Override
     public void close() {
         mClient.interrupt();
         mClient = null;
     }
-    ////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
     private class outMsg {
         public byte[] data;
@@ -242,7 +221,7 @@ public class RemoteBoard extends AbstractBoard {
                 if (recvData.length() > 0)
                     onMsgRecv(recvData);
             } catch (Exception e) {
-                Log.e(constants.APP_TAG, e.toString());
+                e.printStackTrace();
             }
         }
 
@@ -269,7 +248,7 @@ public class RemoteBoard extends AbstractBoard {
                         break;
                     }
             } catch (JSONException e) {
-                Log.e(constants.APP_TAG, e.toString());
+                e.printStackTrace();
                 return;
             }
 
@@ -290,7 +269,7 @@ public class RemoteBoard extends AbstractBoard {
                         }
                     }
                 } catch (Exception e) {
-                    Log.e(constants.APP_TAG, e.toString());
+                    e.printStackTrace();
                 }
             }
         }

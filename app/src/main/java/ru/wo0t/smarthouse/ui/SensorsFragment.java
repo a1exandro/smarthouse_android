@@ -36,10 +36,11 @@ public class SensorsFragment extends BasePageFragment {
 
             try {
                 ((TextView) view.findViewById(R.id.itemSenseName)).setText(sensor.getName());
-                ((TextView) view.findViewById(R.id.itemSensVal)).setText(String.valueOf((double) sensor.getVal()));
+                if (sensor.getVal() != null)
+                    ((TextView) view.findViewById(R.id.itemSensVal)).setText(String.valueOf((double) sensor.getVal()));
             }
             catch (Exception e) {
-                Log.e(constants.APP_TAG, e.toString());
+                e.printStackTrace();
             }
         }
         else

@@ -79,7 +79,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
                 Thread.sleep(constants.BOARD_LOOKUP_TIMEOUT/100);
             }
         } catch (InterruptedException e) {
-            Log.e(constants.APP_TAG, e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -104,7 +104,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
             try {
                 mSocket = new DatagramSocket(port);
             } catch (SocketException e) {
-                Log.e(constants.APP_TAG, e.toString());
+                e.printStackTrace();
             }
         }
 
@@ -120,7 +120,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
             }
             catch(Exception e)
             {
-                Log.e(constants.APP_TAG, e.toString());
+                e.printStackTrace();
                 return "";
             }
         }
@@ -158,7 +158,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
 
                 }
             } catch (Exception e) {
-                Log.e(constants.APP_TAG, e.toString());
+                e.printStackTrace();
             }
 
         }
@@ -200,7 +200,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
                     sendBroadcastMsg(boardsManager.MSG_FOUND_NEW_BOARD, args);
                 }
             } catch (Exception e) {
-                Log.e(constants.APP_TAG, e.toString());
+                e.printStackTrace();
             }
 
         }

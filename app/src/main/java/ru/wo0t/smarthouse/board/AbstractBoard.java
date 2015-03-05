@@ -44,6 +44,8 @@ abstract public class AbstractBoard {
     }
 
     public int getBoardId() { return mBoardId; }
+    public BOARD_TYPE getBoardType() { return mBoardType; }
+    public String getBoardName() { return mBoardName; }
 
     public Sensor getSens(String name) {
         for (int i=0; i<mSensors.size(); i++)
@@ -181,7 +183,7 @@ abstract public class AbstractBoard {
                 }
 
         } catch (JSONException e) {
-            Log.e(constants.APP_TAG, e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -194,8 +196,32 @@ abstract public class AbstractBoard {
         }
     }
 
+    public void onSensorAction(Sensor sens, Object param) {
+        String cmd = "";
+        switch (sens.getSystem()){
+            case SWITCHES:
+                cmd = SYSTEM_SWITCHES + " set " + "p" + sens.getAddr() + "=" + String.valueOf(param) ;
+                break;
+            case SENSES:
+                String tpStr = "";
+                switch (sens.getType()) {
+                    case TEMP:
+                        tpStr = "T";
+                        break;
+                    case DIGITAL:
+                        tpStr = "D";
+                        break;
+                }
+                cmd = SYSTEM_SENSORS + " get " + tpStr+ sens.getAddr();
+                break;
+            case CAMES:
+                cmd = SYSTEM_CAME + " get " + "c" + sens.getAddr();
+                break;
+        }
+        sendPkt(cmd.getBytes());
+    }
+
     abstract public void updateSens(Sensor sens);
-    abstract public void onSensorAction(Sensor sens, Object param);
     abstract public void sendPkt(byte[] data);
     abstract public void close();
 }
