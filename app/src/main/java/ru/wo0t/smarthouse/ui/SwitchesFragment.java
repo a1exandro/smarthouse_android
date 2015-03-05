@@ -38,7 +38,7 @@ public class SwitchesFragment extends BasePageFragment {
 
         if (sensor != null) {
             ((Switch) view.findViewById(R.id.itemSwitch)).setText(sensor.getName());
-            ((Switch) view.findViewById(R.id.itemSwitch)).setTag(R.id.TAG_LWSWITCHES_ITEM_ID, position);
+            (view.findViewById(R.id.itemSwitch)).setTag(R.id.TAG_LWSWITCHES_ITEM_ID, position);
             ((Switch) view.findViewById(R.id.itemSwitch)).setOnCheckedChangeListener( new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

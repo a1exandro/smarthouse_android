@@ -36,8 +36,22 @@ public class SensorsFragment extends BasePageFragment {
 
             try {
                 ((TextView) view.findViewById(R.id.itemSenseName)).setText(sensor.getName());
-                if (sensor.getVal() != null)
-                    ((TextView) view.findViewById(R.id.itemSensVal)).setText(String.valueOf((double) sensor.getVal()));
+                if (sensor.getVal() != null) {
+                    String sVal = "";
+                    switch (sensor.getType()) {
+                        case TEMP:
+                            sVal = String.valueOf((double) sensor.getVal()) +"°C";
+                            break;
+                        case DIGITAL:
+                            if (String.valueOf((double) sensor.getVal()).equals(sensor.getErrVal()))
+                                sVal = getString(R.string.not_ok);
+                            else
+                                sVal = getString(R.string.OK);
+                            break;
+                    }
+                    ((TextView) view.findViewById(R.id.itemSensVal)).setText(sVal);
+                }
+
             }
             catch (Exception e) {
                 e.printStackTrace();

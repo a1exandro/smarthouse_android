@@ -51,7 +51,7 @@ public class Sensor<T> {
 
     public String getErrSign() { return mErrSign; }
     public void setErrSign(String sign) { mErrSign = sign; }
-    public String getmErrVal() { return mErrVal; }
+    public String getErrVal() { return mErrVal; }
     public void setErrVal(String errVal) { mErrVal = errVal; }
     public int getErrWarn() { return mErrWarn; }
     public void setErrWarn(int errWarn) { mErrWarn = errWarn; }

@@ -11,15 +11,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.SMHZApp;
 import ru.wo0t.smarthouse.board.AbstractBoard;
 import ru.wo0t.smarthouse.board.Sensor;
@@ -64,6 +57,7 @@ abstract public class BasePageFragment extends Fragment{
     public void onResume() {
         super.onResume();
         IntentFilter iff= new IntentFilter(boardsManager.MSG_BOARD_CFG_CHANGED);
+        iff.addAction(boardsManager.MSG_SENSOR_DATA);
         LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).registerReceiver(onNotice, iff);
     }
 
@@ -77,18 +71,23 @@ abstract public class BasePageFragment extends Fragment{
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            int boardId = intent.getIntExtra(boardsManager.BOARD_ID,-1);
+            int boardId = intent.getIntExtra(boardsManager.BOARD_ID, -1);
+            String system = intent.getStringExtra(boardsManager.MSG_SYSTEM_NAME);
 
-            if (boardId == getBoardId()) {
-                if (intent.getAction().equals(boardsManager.MSG_BOARD_CFG_CHANGED)) {
-                    String system = intent.getStringExtra(boardsManager.MSG_SYSTEM_NAME);
+            if (boardId == getBoardId() && (mSystem.equals(system))) {
+                switch (intent.getAction()) {
+                    case boardsManager.MSG_BOARD_CFG_CHANGED: {
 
-                    if (mSystem.equals(system)) {   // our system cfg changed
-                        mAdapter.onCfgChanged();
-                    }
+                    } break;
+                    case boardsManager.MSG_SENSOR_DATA: {
+                        mAdapter.update();
+
+                        Log.d(constants.APP_TAG, mSystem+": update "+intent.getStringExtra(boardsManager.SENSOR_NAME));
+                    } break;
                 }
             }
         }
+
     };
 
 ///// Adapter
@@ -111,7 +110,7 @@ abstract public class BasePageFragment extends Fragment{
             return size;
         }
 
-        public void onCfgChanged() {
+        public void update() {
             notifyDataSetChanged();
         }
         @Override

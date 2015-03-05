@@ -1,9 +1,6 @@
 package ru.wo0t.smarthouse.board;
 
 import android.content.Context;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Base64;
 import android.util.Log;
 
@@ -92,7 +89,7 @@ public class RemoteBoard extends AbstractBoard {
         String mLogin, mPassword;
         String mUrlString = constants.REMOTE_BOARD_URL_STRING;
         int mBoardId;
-        int mUpdTime;
+        int mLastMsgId;
         int mSockReadTimeout; // seconds
         Queue<outMsg> mOutQueue;
         HttpURLConnection mConn;
@@ -101,7 +98,7 @@ public class RemoteBoard extends AbstractBoard {
             mLogin = login;
             mPassword = password;
             mBoardId = board_id;
-            mUpdTime = 0;
+            mLastMsgId = 0;
             mSockReadTimeout = 10;
             mOutQueue = new LinkedList<>();
         }
@@ -141,7 +138,7 @@ public class RemoteBoard extends AbstractBoard {
             params.put("board_id", String.valueOf(mBoardId));
             params.put("cmd", cmd);
             params.put("msg", message);
-            params.put("time", Integer.toString(mUpdTime));
+            params.put("lastMsgId", Integer.toString(mLastMsgId));
             params.put("login", mLogin);
             params.put("password", mPassword);
             String postParamsStr = getPostParamString(params);
@@ -184,8 +181,14 @@ public class RemoteBoard extends AbstractBoard {
         @Override
         public void run()
         {
-            while (!this.isInterrupted() && mUpdTime == 0) {
+            while (!this.isInterrupted() && mLastMsgId == 0) {
                 write("register", new String().getBytes());
+                try {
+                    if (mLastMsgId == 0)
+                        Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
             while (!this.isInterrupted())
@@ -199,6 +202,7 @@ public class RemoteBoard extends AbstractBoard {
                 else
                     write("ping", new String().getBytes());
             }
+            mConn.disconnect();
         }
 
         public void sendPkt(String cmd, byte[] buf)
@@ -216,8 +220,8 @@ public class RemoteBoard extends AbstractBoard {
 
         public void write(String cmd, byte[] buf) {
             try {
-                String recvData = loadFromNetwork(cmd, new String(buf));
                 Log.i(constants.APP_TAG, "Sending " + cmd + " " + new String(buf));
+                String recvData = loadFromNetwork(cmd, new String(buf));
                 if (recvData.length() > 0)
                     onMsgRecv(recvData);
             } catch (Exception e) {
@@ -234,8 +238,8 @@ public class RemoteBoard extends AbstractBoard {
                 JSONObject jObj = new JSONObject(msgData);
                 board_data = jObj.getString("board_data");
 
-                if (jObj.has("time"))
-                    mUpdTime = jObj.getInt("time");
+                if (jObj.has("lastMsgId"))
+                    mLastMsgId = jObj.getInt("lastMsgId");
                 if (jObj.has("cmd"))
                     switch (jObj.getString("cmd"))
                     {

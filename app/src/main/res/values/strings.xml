@@ -14,6 +14,8 @@
     <string name="msg_board_discovery_finished">Поиск плат завершен</string>
     <string name="remoteBoard">Удаленная</string>
     <string name="BoardRemote">Локальная</string>
+    <string name="OK">OK</string>
+    <string name="not_ok">нет нормы</string>
 
     <item type="id" name="TAG_LWSWITCHES_ITEM_ID"/>
 </resources>
