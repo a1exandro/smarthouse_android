@@ -13,9 +13,14 @@
     <string name="action_boards_lookup">Поиск плат</string>
     <string name="msg_board_discovery_finished">Поиск плат завершен</string>
     <string name="remoteBoard">Удаленная</string>
-    <string name="BoardRemote">Локальная</string>
+    <string name="localBoard">Локальная</string>
     <string name="OK">OK</string>
     <string name="not_ok">нет нормы</string>
+    <string name="boardId"># платы</string>
+    <string name="name">Имя</string>
+    <string name="type">Тип</string>
+    <string name="user_name">Имя пользователя</string>
+    <string name="systemNameINFO">INFO</string>
 
     <item type="id" name="TAG_LWSWITCHES_ITEM_ID"/>
 </resources>

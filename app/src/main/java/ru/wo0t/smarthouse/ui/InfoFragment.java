@@ -1,8 +1,6 @@
 package ru.wo0t.smarthouse.ui;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +8,12 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import ru.wo0t.smarthouse.R;
+import ru.wo0t.smarthouse.board.AbstractBoard;
+import ru.wo0t.smarthouse.board.RemoteBoard;
 import ru.wo0t.smarthouse.board.Sensor;
 
 
@@ -20,12 +23,17 @@ public class InfoFragment extends BasePageFragment {
 
     }
 
+
     @Override
     public View getLWItemView(int position, View convertView, ViewGroup parent) {
         View view = convertView;
         if (view == null) {
             view = mInflater.inflate(R.layout.lvitem_info_list, parent, false);
         }
+        ArrayList<String> list = (ArrayList<String>)(mAdapter.getItem(position));
+
+        ((TextView) view.findViewById(R.id.infoLwItemCapt)).setText(list.get(0));
+        ((TextView) view.findViewById(R.id.infoLwItemVal)).setText(list.get(1));
 
         return view;
     }
@@ -33,7 +41,7 @@ public class InfoFragment extends BasePageFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        mAdapter = new InfoAdapter();
     }
 
     @Override
@@ -53,5 +61,67 @@ public class InfoFragment extends BasePageFragment {
 
         return rootView;
 
+    }
+
+///// Adapter
+
+    public class InfoAdapter extends SensorsAdapter {
+        ArrayList<String> mKeys = new ArrayList<>();
+        HashMap<String,String> mItems = new HashMap<>();
+
+        @Override
+        public int getCount() { return mKeys.size(); }
+
+        public void update() {
+            mKeys.clear();
+            AbstractBoard board = getBoard();
+
+            mKeys.add(getString(R.string.boardId));
+            mKeys.add(getString(R.string.name));
+            mKeys.add(getString(R.string.type));
+            if (board.getBoardType() == AbstractBoard.BOARD_TYPE.REMOTE) {
+                mKeys.add(getString(R.string.user_name));
+            }
+
+            mItems.clear();
+
+            for (int i = 0; i < mKeys.size(); i++) {
+                String key = mKeys.get(i);
+                String val = key;
+
+                if (key.equals(getString(R.string.boardId))) val = String.valueOf(board.getBoardId());
+                if (key.equals(getString(R.string.name))) val = board.getBoardName();
+                if (key.equals(getString(R.string.type))) {
+                    if (board.getBoardType() == AbstractBoard.BOARD_TYPE.REMOTE)
+                        val = getString(R.string.remoteBoard);
+                    else
+                        val = getString(R.string.localBoard);
+                }
+                if (key.equals(getString(R.string.user_name))) val = ((RemoteBoard)board).getLogin();
+
+                mItems.put(key,val);
+            }
+
+            notifyDataSetChanged();
+        }
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            return getLWItemView(position, convertView, parent);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public Object getItem(int position) {
+            ArrayList<String> list = new ArrayList<>();
+
+            list.add(mKeys.get(position));
+            list.add(mItems.get(mKeys.get(position)));
+
+            return list;
+        }
     }
 }

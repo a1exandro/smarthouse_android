@@ -30,7 +30,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
         Fragment fragment = new InfoFragment();
         Bundle args = new Bundle();
         args.putInt(boardsManager.BOARD_ID, boardId);
-        args.putString(boardsManager.MSG_SYSTEM_NAME, "INFO");
+        args.putString(boardsManager.MSG_SYSTEM_NAME, context.getString(R.string.systemNameINFO));
         fragment.setArguments(args);
         Page page = new Page(context, fragment, PageType.INFO);
         mFragments.add(page);

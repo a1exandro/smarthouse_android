@@ -171,7 +171,7 @@ public class BoardsLookupActivity extends Activity {
                 boardText += getString(R.string.remoteBoard);
             }
             else {
-                boardText += getString(R.string.BoardRemote) + " ("+board.mIpAddr+")";
+                boardText += getString(R.string.localBoard) + " ("+board.mIpAddr+")";
             }
 
             ((TextView) view.findViewById(R.id.itemTxtBoardType)).setText(boardText);

@@ -185,7 +185,7 @@ public class RemoteBoard extends AbstractBoard {
                 write("register", new String().getBytes());
                 try {
                     if (mLastMsgId == 0)
-                        Thread.sleep(5000);
+                        Thread.sleep(constants.REMOTE_BOARD_WAIT_PERIOD);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -193,14 +193,22 @@ public class RemoteBoard extends AbstractBoard {
 
             while (!this.isInterrupted())
             {
+                boolean sendOk = false;
                 if (mOutQueue.size() > 0) {
                     while (mOutQueue.size() > 0) {
                         outMsg msg = mOutQueue.poll();
-                        write(msg.cmd, msg.data);
+                        sendOk = write(msg.cmd, msg.data);
                     }
                 }
                 else
-                    write("ping", new String().getBytes());
+                    sendOk = write("ping", new String().getBytes());
+                if (!sendOk) {
+                    try {
+                        Thread.sleep(constants.REMOTE_BOARD_WAIT_PERIOD);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
             mConn.disconnect();
         }
@@ -218,18 +226,22 @@ public class RemoteBoard extends AbstractBoard {
             sendPkt("message", buf);
         }
 
-        public void write(String cmd, byte[] buf) {
+        public boolean write(String cmd, byte[] buf) {
             try {
                 Log.i(constants.APP_TAG, "Sending " + cmd + " " + new String(buf));
                 String recvData = loadFromNetwork(cmd, new String(buf));
                 if (recvData.length() > 0)
-                    onMsgRecv(recvData);
+                    return onMsgRecv(recvData);
+                else
+                    return false;
             } catch (Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
+                Log.d(constants.APP_TAG, e.toString());
+                return false;
             }
         }
 
-        private void onMsgRecv(String msgData)
+        private boolean onMsgRecv(String msgData)
         {
             Log.i(constants.APP_TAG, "Recv: " + msgData);
             String board_data;
@@ -240,20 +252,21 @@ public class RemoteBoard extends AbstractBoard {
 
                 if (jObj.has("lastMsgId"))
                     mLastMsgId = jObj.getInt("lastMsgId");
-                if (jObj.has("cmd"))
-                    switch (jObj.getString("cmd"))
-                    {
+                if (jObj.has("cmd")) {
+                    switch (jObj.getString("cmd")) {
                         case "register":
-                            if (jObj.getString("answer").equals("OK") )
-                            {
+                            if (jObj.getString("answer").equals("OK")) {
                                 mSockReadTimeout = jObj.getInt("timeout");
                                 onBoardConnected();
                             }
-                        break;
+                            break;
                     }
+                }
+                else
+                    return false;
             } catch (JSONException e) {
                 e.printStackTrace();
-                return;
+                return false;
             }
 
             if (board_data.length() > 0) {
@@ -274,8 +287,10 @@ public class RemoteBoard extends AbstractBoard {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    return false;
                 }
             }
+            return true;
         }
     }
 }

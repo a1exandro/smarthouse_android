@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
+import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.SMHZApp;
 import ru.wo0t.smarthouse.board.AbstractBoard;
 import ru.wo0t.smarthouse.board.Sensor;
@@ -30,7 +31,6 @@ abstract public class BasePageFragment extends Fragment{
     protected SensorsAdapter mAdapter;
 
     abstract View getLWItemView(int position, View convertView, ViewGroup parent);
-    private int getCustomLwItemsCount() { return 0; }
 
     protected AbstractBoard getBoard() {
         return ((SMHZApp) getActivity().getApplication()).getBoardsManager().getBoard(getBoardId());
@@ -74,15 +74,19 @@ abstract public class BasePageFragment extends Fragment{
             int boardId = intent.getIntExtra(boardsManager.BOARD_ID, -1);
             String system = intent.getStringExtra(boardsManager.MSG_SYSTEM_NAME);
 
-            if (boardId == getBoardId() && (mSystem.equals(system))) {
+            if (boardId == getBoardId()) {
                 switch (intent.getAction()) {
                     case boardsManager.MSG_BOARD_CFG_CHANGED: {
-
+                        if (mSystem.equals(context.getString(R.string.systemNameINFO))) {
+                            mAdapter.update();
+                        }
                     } break;
                     case boardsManager.MSG_SENSOR_DATA: {
-                        mAdapter.update();
+                        if (mSystem.equals(system)) {
+                            mAdapter.update();
 
-                        Log.d(constants.APP_TAG, mSystem+": update "+intent.getStringExtra(boardsManager.SENSOR_NAME));
+                            Log.d(constants.APP_TAG, mSystem + ": update " + intent.getStringExtra(boardsManager.SENSOR_NAME));
+                        }
                     } break;
                 }
             }
@@ -103,7 +107,7 @@ abstract public class BasePageFragment extends Fragment{
                     size = board.getSensors(Sensor.SENSOR_SYSTEM.valueOf(mSystem)).size();
                 }
                 catch (Exception e) {
-                    size = getCustomLwItemsCount();
+                    size = 0;
                 }
 
             }
@@ -131,7 +135,7 @@ abstract public class BasePageFragment extends Fragment{
                 try {
                     sens = board.getSensors(Sensor.SENSOR_SYSTEM.valueOf(mSystem)).get(position);
                 }
-                catch (Exception e) {
+                catch (Exception e){
                     Log.e(constants.APP_TAG, "Could not find sensor at pos "+position);
                 }
             }
