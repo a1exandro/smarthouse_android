@@ -75,6 +75,7 @@ public class BoardsLookupActivity extends Activity {
     protected void onPause() {
         super.onPause();
         LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(onNotice);
+        ((SMHZApp)getApplication()).getBoardsManager().closeBoardsLookup();
     }
 
     @Override
@@ -132,7 +133,7 @@ public class BoardsLookupActivity extends Activity {
             else
             if (intent.getAction().equals(boardsManager.MSG_BOARDS_DISCOVERY_FINISHED))
             {
-                Toast.makeText(getApplicationContext(), getString(R.string.msg_board_discovery_finished), Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.msg_board_discovery_finished), Toast.LENGTH_SHORT).show();
                 Log.d(constants.APP_TAG, "Finishing boards discovery");
             }
         }

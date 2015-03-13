@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -12,8 +11,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import ru.wo0t.smarthouse.common.constants;
 
 /**
  * Created by alex on 2/9/15.
@@ -221,7 +218,12 @@ abstract public class AbstractBoard {
         sendPkt(cmd.getBytes());
     }
 
+    protected void close() {
+        sendBroadcastMsg(boardsManager.MSG_BOARD_DISCONNECTED);
+        clear();
+    }
+    protected void clear() { mSensors.clear(); }
+
     abstract public void updateSens(Sensor sens);
     abstract public void sendPkt(byte[] data);
-    abstract public void close();
 }

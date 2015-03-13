@@ -52,6 +52,7 @@ public class MainActivity extends FragmentActivity {
                 startActivityForResult(intent, BoardsLookupActivity.REQUEST_CODE_GET_BOARD);
             }
             else {
+                mBoardId = defaultBoard;
                 mPagerAdapter.changeBoard(defaultBoard);
                 ((SMHZApp) getApplication()).getBoardsManager().connectToDefaultBoard();
             }

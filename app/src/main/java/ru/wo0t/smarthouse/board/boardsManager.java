@@ -5,19 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
 import android.support.v4.util.ArrayMap;
 import android.util.Log;
+import android.widget.Toast;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import ru.wo0t.smarthouse.ui.BoardsLookupActivity;
+import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.common.constants;
 
 /**
@@ -28,6 +23,7 @@ public class boardsManager {
     Context mContext;
 
     public static final String MSG_BOARD_CONNECTED = "MSG_BOARD_CONNECTED";
+    public static final String MSG_BOARD_DISCONNECTED = "MSG_BOARD_DISCONNECTED";
     public static final String MSG_BOARD_NEW_MESSAGE = "MSG_BOARD_NEW_MESSAGE";
     public static final String MSG_BOARD_CFG_CHANGED = "MSG_BOARD_CFG_CHANGED";
     public static final String MSG_SENSOR_DATA = "MSG_SENSOR_DATA";
@@ -48,24 +44,24 @@ public class boardsManager {
     public static final String SENSOR_NAME = "SENSOR_NAME";
 
     private ArrayMap<Integer,AbstractBoard> mActiveBoards;
+    private boardsDiscover mBrdDiscover;
 
     public boardsManager(Context context) {
         mContext = context;
         IntentFilter iff= new IntentFilter(MSG_BOARD_CONNECTED);
-        iff.addAction(MSG_BOARD_NEW_MESSAGE);
-        iff.addAction(MSG_BOARD_CFG_CHANGED);
-        iff.addAction(MSG_SENSOR_DATA);
+        iff.addAction(MSG_BOARD_DISCONNECTED);
 
         BroadcastReceiver onNotice = new BroadcastReceiver() {
 
             @Override
             public void onReceive(Context context, Intent intent) {
 
-                //Log.d(constants.APP_TAG, "BROADCAST RECV: " + intent.getAction());
+                int boardId = intent.getIntExtra(BOARD_ID,-1);
+                AbstractBoard board = getBoard(boardId);
+
                 switch (intent.getAction()) {
                     case MSG_BOARD_CONNECTED: {
-                        int boardId = intent.getIntExtra(BOARD_ID,-1);
-                        AbstractBoard board = getBoard(boardId);
+
                         AbstractBoard.BOARD_TYPE boardType = board.getBoardType();
                         String boardName = board.getBoardName();
 
@@ -85,6 +81,11 @@ public class boardsManager {
                             pref.edit().putString(BOARD_LOGIN, login).apply();
                             pref.edit().putString(BOARD_PW, password).apply();
                         }
+                        Toast.makeText(mContext, mContext.getString(R.string.successfullyConnectedToBoard) + "'" + boardName + "'", Toast.LENGTH_SHORT).show();
+                    } break;
+                    case MSG_BOARD_DISCONNECTED: {
+                        String boardName = intent.getStringExtra(BOARD_DESCR);
+                        Toast.makeText(mContext, mContext.getString(R.string.disconnectedFromBoard) + "'" + boardName+ "'", Toast.LENGTH_SHORT).show();
                     } break;
                 }
             }
@@ -124,10 +125,13 @@ public class boardsManager {
         }
     }
 
+    public void closeBoardsLookup() {
+        mBrdDiscover.close();
+        mBrdDiscover.cancel(false); // TODO: close searching immediately
+    }
     public void lookUpForBoards(int remotePort, String login, String password) {
-        boardsDiscover brdDiscover = new boardsDiscover(mContext,boardsDiscover.LOOKUP_ALL_BOARDS);
-
-        brdDiscover.execute(remotePort, login, password);
+        mBrdDiscover = new boardsDiscover(mContext,boardsDiscover.LOOKUP_ALL_BOARDS);
+        mBrdDiscover.execute(remotePort, login, password);
     }
 
     public void connectToLocalBoard(int board_id, String board_name, String ip_addr) {

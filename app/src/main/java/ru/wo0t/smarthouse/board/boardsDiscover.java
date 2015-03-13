@@ -52,6 +52,13 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
         String httpUser = (String)params[1];
         String httpPasswd = (String)params[2];
         getBoardsList(udpPort, httpUser, httpPasswd, mLookUpFlag);
+        while (isCancelled()) {
+            try {
+                Thread.sleep(constants.BOARD_LOOKUP_TIMEOUT/100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         sendBroadcastMsg(boardsManager.MSG_BOARDS_DISCOVERY_FINISHED, new Bundle());
         close();
         return true;
@@ -72,14 +79,6 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
         if ((lookup_flags & LOOKUP_REMOTE_BOARD) > 0) {
             mRemoteDiscover = new RemoteDiscover(httpUser, httpPasswd);
             mRemoteDiscover.start();
-        }
-
-        try {
-            for (int i = 0; i < 100; i++) {
-                Thread.sleep(constants.BOARD_LOOKUP_TIMEOUT/100);
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
@@ -163,7 +162,8 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
 
         }
         public void close() {
-            mSocket.close();
+            if (mSocket != null)
+                mSocket.close();
         }
     }
 
@@ -171,6 +171,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
         String mLogin, mPassword;
         int mSockReadTimeout = 10;
         String mUrlString = constants.REMOTE_BOARD_URL_STRING;
+        HttpURLConnection mConn;
 
         public RemoteDiscover(String httpUser, String httpPasswd)
         {
@@ -205,7 +206,8 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
 
         }
         public void close() {
-
+            if (mConn != null)
+                mConn.disconnect();
         }
 
         private String loadFromNetwork(String cmd, String message) throws IOException {
@@ -226,17 +228,17 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
         private InputStream downloadUrl(String cmd, String message) throws IOException {
 
             URL url = new URL(mUrlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(mSockReadTimeout * 1000 + 3000/* milliseconds */);
-            conn.setConnectTimeout(15000 /* milliseconds */);
-            conn.setRequestMethod("POST");
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
+            mConn = (HttpURLConnection) url.openConnection();
+            mConn.setReadTimeout(mSockReadTimeout * 1000 + 3000/* milliseconds */);
+            mConn.setConnectTimeout(15000 /* milliseconds */);
+            mConn.setRequestMethod("POST");
+            mConn.setDoInput(true);
+            mConn.setDoOutput(true);
 
             // set basic auth
             String userPassword = constants.REMOTE_BOARD_USER + ":" + constants.REMOTE_BOARD_PASSWORD;
             String encoding = Base64.encodeToString(userPassword.getBytes(), Base64.DEFAULT);
-            conn.setRequestProperty("Authorization", "Basic " + encoding);
+            mConn.setRequestProperty("Authorization", "Basic " + encoding);
 
             //send POST params
             Hashtable<String, String> params = new Hashtable<>();
@@ -247,11 +249,11 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
             params.put("login", mLogin);
             params.put("password", mPassword);
             String postParamsStr = getPostParamString(params);
-            conn.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded");
-            conn.setRequestProperty( "Content-Length", Integer.toString( postParamsStr.length() ));
-            conn.getOutputStream().write(postParamsStr.getBytes("UTF-8"));
+            mConn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            mConn.setRequestProperty("Content-Length", Integer.toString(postParamsStr.length()));
+            mConn.getOutputStream().write(postParamsStr.getBytes("UTF-8"));
 
-            return conn.getInputStream();
+            return mConn.getInputStream();
         }
 
         private String getPostParamString(Hashtable<String, String> params) {

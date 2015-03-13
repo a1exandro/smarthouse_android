@@ -21,6 +21,10 @@
     <string name="type">Тип</string>
     <string name="user_name">Имя пользователя</string>
     <string name="systemNameINFO">INFO</string>
+    <string name="sensUpdating">"Обновление: "</string>
+    <string name="sensSuccessfullyUpdated">"Успешно обновлено: "</string>
+    <string name="successfullyConnectedToBoard">"Успешно подключен к плате: "</string>
+    <string name="disconnectedFromBoard">"Отключен от платы: "</string>
 
     <item type="id" name="TAG_LWSWITCHES_ITEM_ID"/>
 </resources>

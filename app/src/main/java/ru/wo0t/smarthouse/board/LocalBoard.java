@@ -71,6 +71,7 @@ public class LocalBoard extends AbstractBoard {
 
     @Override
     public void close() {
+        super.close();
         mClient.interrupt();
         mClient = null;
     }

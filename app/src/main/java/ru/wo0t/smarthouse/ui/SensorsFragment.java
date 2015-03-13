@@ -21,6 +21,7 @@ public class SensorsFragment extends BasePageFragment {
 
     void onItemSelected(Sensor sensor) {
         getBoard().onSensorAction(sensor, null);
+        updateSensDialog(sensor);
     }
 
     @Override

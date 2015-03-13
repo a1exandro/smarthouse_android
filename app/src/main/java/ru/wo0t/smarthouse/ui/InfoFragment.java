@@ -54,8 +54,7 @@ public class InfoFragment extends BasePageFragment {
         lvMain.setOnItemClickListener( new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Sensor sensor = (Sensor)parent.getItemAtPosition(position);
-                onItemSelected(sensor);
+
             }
         });
 
@@ -75,6 +74,7 @@ public class InfoFragment extends BasePageFragment {
         public void update() {
             mKeys.clear();
             AbstractBoard board = getBoard();
+            if (board == null) return;
 
             mKeys.add(getString(R.string.boardId));
             mKeys.add(getString(R.string.name));
