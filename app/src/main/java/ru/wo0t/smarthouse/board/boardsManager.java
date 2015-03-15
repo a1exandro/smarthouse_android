@@ -127,7 +127,7 @@ public class boardsManager {
 
     public void closeBoardsLookup() {
         mBrdDiscover.close();
-        mBrdDiscover.cancel(false); // TODO: close searching immediately
+        mBrdDiscover.cancel(false);
     }
     public void lookUpForBoards(int remotePort, String login, String password) {
         mBrdDiscover = new boardsDiscover(mContext,boardsDiscover.LOOKUP_ALL_BOARDS);

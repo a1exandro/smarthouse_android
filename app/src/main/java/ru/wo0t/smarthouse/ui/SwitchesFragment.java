@@ -3,6 +3,7 @@ package ru.wo0t.smarthouse.ui;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -17,7 +18,6 @@ import ru.wo0t.smarthouse.common.constants;
 
 
 public class SwitchesFragment extends BasePageFragment {
-    private static final int ITEM_TAG = 1;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,6 +25,7 @@ public class SwitchesFragment extends BasePageFragment {
 
     void onItemSelected(Sensor sensor, boolean val) {
         getBoard().onSensorAction(sensor, val? 1:0);
+        updateSensDialog(sensor);
     }
 
     @Override
@@ -39,17 +40,21 @@ public class SwitchesFragment extends BasePageFragment {
         if (sensor != null) {
             ((Switch) view.findViewById(R.id.itemSwitch)).setText(sensor.getName());
             (view.findViewById(R.id.itemSwitch)).setTag(R.id.TAG_LWSWITCHES_ITEM_ID, position);
-            ((Switch) view.findViewById(R.id.itemSwitch)).setOnCheckedChangeListener( new CompoundButton.OnCheckedChangeListener() {
+            ((Switch) view.findViewById(R.id.itemSwitch)).setOnTouchListener(new View.OnTouchListener() {
                 @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    Sensor sens = (Sensor)mAdapter.getItem( (int)buttonView.getTag(R.id.TAG_LWSWITCHES_ITEM_ID));
-                    onItemSelected(sens, isChecked);
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_UP) {
+                        Sensor sens = (Sensor) mAdapter.getItem((int) ((Switch) v.findViewById(R.id.itemSwitch)).getTag(R.id.TAG_LWSWITCHES_ITEM_ID));
+                        onItemSelected(sens, !((Switch) v.findViewById(R.id.itemSwitch)).isChecked());
+                        return true;
+                    }
+                    return false;
                 }
             });
 
             if (sensor.getVal() != null)
             {
-                int val = (int)sensor.getVal();
+                double val = (double)sensor.getVal();
                 ((Switch) view.findViewById(R.id.itemSwitch)).setChecked(val == 1);
             }
         }

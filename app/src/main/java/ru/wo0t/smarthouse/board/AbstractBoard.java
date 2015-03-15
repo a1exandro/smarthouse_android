@@ -1,5 +1,6 @@
 package ru.wo0t.smarthouse.board;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,6 +12,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import ru.wo0t.smarthouse.R;
+import ru.wo0t.smarthouse.SMHZApp;
 
 /**
  * Created by alex on 2/9/15.
@@ -30,7 +34,8 @@ abstract public class AbstractBoard {
     protected List<Sensor>mSensors;
     protected String mBoardName;
     protected int mBoardId;
-    Context mContext;
+    private Context mContext;
+    private ProgressDialog mWaitCfgDialog;
 
     public AbstractBoard(Context context, BOARD_TYPE type, int id, String name) {
         mBoardType = type;
@@ -38,6 +43,23 @@ abstract public class AbstractBoard {
         mSensors = new ArrayList<>();
         mContext = context;
         mBoardName = name;
+
+        showWaitDlg("Загрузка конфигурации...");
+    }
+
+    private boolean showWaitDlg(String text) {
+        if (mWaitCfgDialog != null) return false;
+
+        mWaitCfgDialog = new ProgressDialog(((SMHZApp) mContext.getApplicationContext()).getMainActivity());
+        mWaitCfgDialog.setMessage(text);
+        mWaitCfgDialog.show();
+        return true;
+    }
+
+    private boolean closeWaitDlg() {
+        if (mWaitCfgDialog == null) return false;
+        mWaitCfgDialog.dismiss();
+        return true;
     }
 
     public int getBoardId() { return mBoardId; }
@@ -185,6 +207,7 @@ abstract public class AbstractBoard {
     }
 
     private void onSystemCfgChanged(Sensor.SENSOR_SYSTEM system) {
+        closeWaitDlg();
         if (mBoardType == BOARD_TYPE.REMOTE) return;    // do not request sensors data, web interface will do it for us
         List<Sensor> sens = getSensors(system);
         for (int i = 0; i < sens.size(); i++) {
@@ -197,7 +220,7 @@ abstract public class AbstractBoard {
         String cmd = "";
         switch (sens.getSystem()){
             case SWITCHES:
-                cmd = SYSTEM_SWITCHES + " set " + "p" + sens.getAddr() + "=" + String.valueOf(param) ;
+                cmd = SYSTEM_SWITCHES + " set " + "p" + sens.getAddr() + " = " + String.valueOf(param) ;
                 break;
             case SENSES:
                 String tpStr = "";

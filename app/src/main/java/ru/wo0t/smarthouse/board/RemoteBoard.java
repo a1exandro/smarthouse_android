@@ -203,7 +203,7 @@ public class RemoteBoard extends AbstractBoard {
                 }
                 else
                     sendOk = write("ping", new String().getBytes());
-                if (!sendOk) {
+                if (!sendOk && mOutQueue.size() == 0) {
                     try {
                         Thread.sleep(constants.REMOTE_BOARD_WAIT_PERIOD);
                     } catch (InterruptedException e) {

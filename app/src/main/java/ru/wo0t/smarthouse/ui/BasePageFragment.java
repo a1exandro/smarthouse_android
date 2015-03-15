@@ -44,6 +44,9 @@ abstract public class BasePageFragment extends Fragment{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mBoardId = ((SMHZApp) getActivity().getApplication()).getBoardId();
+        }
         if (getArguments() != null) {
             Bundle args = getArguments();
             if (mBoardId == -1)
@@ -105,12 +108,12 @@ abstract public class BasePageFragment extends Fragment{
                         mAdapter.update();
 
                     } break;
-                    case boardsManager.MSG_BOARD_DISCONNECTED: {
+                    case boardsManager.MSG_BOARD_DISCONNECTED: {    // TODO: why i don't receive this fucking message?
                         mAdapter.update();
 
                     } break;
                     case boardsManager.MSG_BOARD_CFG_CHANGED: {
-                        if (mSystem.equals(context.getString(R.string.systemNameINFO))) {
+                        if ((mSystem.equals(context.getString(R.string.systemNameINFO))) || (mSystem.equals(system))) {
                             mAdapter.update();
                         }
                     } break;

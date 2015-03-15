@@ -7,7 +7,6 @@ package ru.wo0t.smarthouse;
 
 import android.app.Application;
 import android.content.Context;
-import android.util.Log;
 
 import ru.wo0t.smarthouse.board.boardsManager;
 
@@ -15,6 +14,8 @@ import ru.wo0t.smarthouse.board.boardsManager;
 public class SMHZApp extends Application {
 
     private boardsManager mBoardsManager;
+    private int mBoardId = -1;
+    private Context mMainActivity;
 
     @Override
     public void onCreate() {
@@ -33,4 +34,9 @@ public class SMHZApp extends Application {
         return (SMHZApp) context.getApplicationContext();
     }
 
+    public int getBoardId() { return mBoardId; }
+    public void setBoardId(int aBoardId) { mBoardId = aBoardId; }
+
+    public void setMainActivity(Context context) { mMainActivity = context; }
+    public Context getMainActivity() { return mMainActivity; }
 }

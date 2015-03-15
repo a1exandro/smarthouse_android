@@ -22,8 +22,7 @@ public class InfoFragment extends BasePageFragment {
     void onItemSelected(Sensor sensor) {
 
     }
-
-
+    
     @Override
     public View getLWItemView(int position, View convertView, ViewGroup parent) {
         View view = convertView;
@@ -54,7 +53,8 @@ public class InfoFragment extends BasePageFragment {
         lvMain.setOnItemClickListener( new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+                //Sensor sensor = (Sensor)parent.getItemAtPosition(position);
+                //onItemSelected(sensor);
             }
         });
 
@@ -68,23 +68,27 @@ public class InfoFragment extends BasePageFragment {
         ArrayList<String> mKeys = new ArrayList<>();
         HashMap<String,String> mItems = new HashMap<>();
 
+        InfoAdapter() {
+            update();
+        }
+
         @Override
         public int getCount() { return mKeys.size(); }
 
         public void update() {
-            mKeys.clear();
             AbstractBoard board = getBoard();
             if (board == null) return;
 
-            mKeys.add(getString(R.string.boardId));
+            mKeys.clear();
+            mItems.clear();
+
             mKeys.add(getString(R.string.name));
             mKeys.add(getString(R.string.type));
             if (board.getBoardType() == AbstractBoard.BOARD_TYPE.REMOTE) {
                 mKeys.add(getString(R.string.user_name));
             }
-
-            mItems.clear();
-
+            mKeys.add(getString(R.string.boardId));
+            
             for (int i = 0; i < mKeys.size(); i++) {
                 String key = mKeys.get(i);
                 String val = key;

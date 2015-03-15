@@ -34,33 +34,37 @@ public class MainActivity extends FragmentActivity {
 
         Log.d(constants.APP_TAG,"Starting the program");
 
-        try {
+       /* try {
             Thread.sleep(5000);     // wait for emulator
 
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }*/
+
+        mBoardId = ((SMHZApp) getApplication()).getBoardId();
+        ((SMHZApp) getApplication()).setMainActivity(this);
+
+
+        if (mBoardId == -1) {
+            try {
+                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                int defaultBoard = pref.getInt(boardsManager.BOARD_ID, -1);
+
+                if (defaultBoard == -1) {
+                    Intent intent = new Intent(this, BoardsLookupActivity.class);
+                    startActivityForResult(intent, BoardsLookupActivity.REQUEST_CODE_GET_BOARD);
+                } else {
+                    mBoardId = defaultBoard;
+                    ((SMHZApp) getApplication()).setBoardId(mBoardId);
+                    ((SMHZApp) getApplication()).getBoardsManager().connectToDefaultBoard();
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         configureActionBar();
-
-        try {
-            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            int defaultBoard = pref.getInt(boardsManager.BOARD_ID,-1);
-
-            if (defaultBoard == -1) {
-                Intent intent = new Intent(this, BoardsLookupActivity.class);
-                startActivityForResult(intent, BoardsLookupActivity.REQUEST_CODE_GET_BOARD);
-            }
-            else {
-                mBoardId = defaultBoard;
-                mPagerAdapter.changeBoard(defaultBoard);
-                ((SMHZApp) getApplication()).getBoardsManager().connectToDefaultBoard();
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
 
     private void configureActionBar() {
@@ -163,6 +167,7 @@ public class MainActivity extends FragmentActivity {
                         }
                         mBoardId = boardId;
                         mPagerAdapter.changeBoard(boardId);
+                        ((SMHZApp) getApplication()).setBoardId(mBoardId);
                     }
                     else
                         Log.d(constants.APP_TAG, "Board selection has been canceled!");

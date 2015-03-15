@@ -49,12 +49,14 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
     protected Boolean doInBackground(Object... params) {
 
         int udpPort = (int)params[0];
+        int count = constants.BOARD_LOOKUP_TIMEOUT/100;
         String httpUser = (String)params[1];
         String httpPasswd = (String)params[2];
         getBoardsList(udpPort, httpUser, httpPasswd, mLookUpFlag);
-        while (isCancelled()) {
+        while (!isCancelled()) {
             try {
                 Thread.sleep(constants.BOARD_LOOKUP_TIMEOUT/100);
+                if (--count == 0) break;
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

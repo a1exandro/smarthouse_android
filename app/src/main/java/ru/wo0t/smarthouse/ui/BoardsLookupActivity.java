@@ -74,8 +74,8 @@ public class BoardsLookupActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(onNotice);
         ((SMHZApp)getApplication()).getBoardsManager().closeBoardsLookup();
+        LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(onNotice);
     }
 
     @Override
