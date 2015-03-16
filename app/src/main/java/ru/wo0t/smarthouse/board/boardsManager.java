@@ -42,6 +42,7 @@ public class boardsManager {
     public static final String SENSOR_TYPE = "SENSOR_TYPE";
     public static final String SENSOR_VALUE = "SENSOR_VALUE";
     public static final String SENSOR_NAME = "SENSOR_NAME";
+    public static final String SENSOR_VALUE_OUT_OF_RANGE = "SENSOR_VALUE_OUT_OF_RANGE";
 
     private ArrayMap<Integer,AbstractBoard> mActiveBoards;
     private boardsDiscover mBrdDiscover;
@@ -86,6 +87,9 @@ public class boardsManager {
                     case MSG_BOARD_DISCONNECTED: {
                         String boardName = intent.getStringExtra(BOARD_DESCR);
                         Toast.makeText(mContext, mContext.getString(R.string.disconnectedFromBoard) + "'" + boardName+ "'", Toast.LENGTH_SHORT).show();
+                    } break;
+                    case SENSOR_VALUE_OUT_OF_RANGE: {
+
                     } break;
                 }
             }

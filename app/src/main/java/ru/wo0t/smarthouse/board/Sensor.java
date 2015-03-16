@@ -21,6 +21,7 @@ public class Sensor<T> {
     private String mName;
     private String mErrSign, mErrVal;
     private int mErrWarn;
+    private boolean mIsNotified = false;
 
     public Sensor() {
         mSensType = SENSOR_TYPE.UNKNOWN;
@@ -55,6 +56,43 @@ public class Sensor<T> {
     public void setErrVal(String errVal) { mErrVal = errVal; }
     public int getErrWarn() { return mErrWarn; }
     public void setErrWarn(int errWarn) { mErrWarn = errWarn; }
+
+    public void clearNotifiedFlag() { mIsNotified = false; }
+
+    /* returns true if sensor value is ok, else returns false */
+    public boolean checkValue(){
+        if (mIsNotified || mErrVal == null || mErrSign == null || mErrWarn == 0 || mVal == null) return true;
+
+        switch (mSensSystem) {
+            case SENSES: {
+                switch (mErrSign) {
+                    case "0": { // less
+                        if ((double)(Object)getVal() < Double.valueOf(mErrVal)) {
+                            mIsNotified = true;
+                            return false;
+                        }
+                        else return true;
+                    }
+                    case "1": { // equal
+                        if ((double)(Object)getVal() == Double.valueOf(mErrVal)) {
+                            mIsNotified = true;
+                            return false;
+                        }
+                        else return true;
+                    }
+                    case "2": { // more
+                        if ((double)(Object)getVal() > Double.valueOf(mErrVal)) {
+                            mIsNotified = true;
+                            return false;
+                        }
+                        else return true;
+                    }
+                }
+            }break;
+        }
+
+        return true;
+    }
 
     public void loadFromJSON(JSONObject jObj, SENSOR_SYSTEM sensSystem) {
         try {

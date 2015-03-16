@@ -44,7 +44,7 @@ abstract public class AbstractBoard {
         mContext = context;
         mBoardName = name;
 
-        showWaitDlg("Загрузка конфигурации...");
+        showWaitDlg(mContext.getString(R.string.loadingCfg));
     }
 
     private boolean showWaitDlg(String text) {
@@ -196,6 +196,8 @@ abstract public class AbstractBoard {
                             sensData.putString(boardsManager.MSG_SYSTEM_NAME, sensSystem.toString());
 
                             sendBroadcastMsg(boardsManager.MSG_SENSOR_DATA, sensData);
+
+                            if (!sens.checkValue()) sendBroadcastMsg(boardsManager.SENSOR_VALUE_OUT_OF_RANGE, sensData);
                         }
                     }
                     break;

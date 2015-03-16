@@ -25,6 +25,7 @@
     <string name="sensSuccessfullyUpdated">"Успешно обновлено: "</string>
     <string name="successfullyConnectedToBoard">"Успешно подключен к плате: "</string>
     <string name="disconnectedFromBoard">"Отключен от платы: "</string>
+    <string name="loadingCfg">Загрузка конфигурации...</string>
 
     <item type="id" name="TAG_LWSWITCHES_ITEM_ID"/>
 </resources>
