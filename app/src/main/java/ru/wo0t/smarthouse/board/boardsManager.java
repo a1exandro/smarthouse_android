@@ -1,10 +1,18 @@
 package ru.wo0t.smarthouse.board;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -14,6 +22,7 @@ import android.widget.Toast;
 
 import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.common.constants;
+import ru.wo0t.smarthouse.ui.MainActivity;
 
 /**
  * Created by alex on 2/17/15.
@@ -47,11 +56,14 @@ public class boardsManager {
     private ArrayMap<Integer,AbstractBoard> mActiveBoards;
     private boardsDiscover mBrdDiscover;
 
+    private int mNotificationsCound = 1;
+
     public boardsManager(Context context) {
         mContext = context;
         IntentFilter iff= new IntentFilter(MSG_BOARD_CONNECTED);
         iff.addAction(MSG_BOARD_DISCONNECTED);
-
+        iff.addAction(SENSOR_VALUE_OUT_OF_RANGE)
+        ;
         BroadcastReceiver onNotice = new BroadcastReceiver() {
 
             @Override
@@ -89,7 +101,53 @@ public class boardsManager {
                         Toast.makeText(mContext, mContext.getString(R.string.disconnectedFromBoard) + "'" + boardName+ "'", Toast.LENGTH_SHORT).show();
                     } break;
                     case SENSOR_VALUE_OUT_OF_RANGE: {
+                        try {
+                            final long[] SENS_OUT_OF_RANGE_VIBRATE = new long[] { 1000, 1000, 1000};
+                            String sensName = intent.getStringExtra(SENSOR_NAME);
+                            double sensVal = intent.getDoubleExtra(SENSOR_VALUE,0); // TODO: process non-double values and add dimension
+                            Intent notificationIntent = new Intent(context, MainActivity.class);
+                            PendingIntent contentIntent = PendingIntent.getActivity(context,
+                                    0, notificationIntent,
+                                    PendingIntent.FLAG_CANCEL_CURRENT);
 
+                            Resources res = context.getResources();
+                            Notification.Builder builder = new Notification.Builder(context);
+
+                            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+                            String prefRingtone = pref.getString("alarm_sound","");
+                            Uri ringURI;
+
+                            if (prefRingtone.equals(""))
+                                ringURI =  RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                            else
+                                ringURI = Uri.parse(prefRingtone);
+
+
+                            builder.setContentIntent(contentIntent)
+                                    .setSmallIcon(R.mipmap.ic_notify_sens_out_of_range)
+
+                                    .setLargeIcon(BitmapFactory.decodeResource(res, R.mipmap.ic_notify_sens_out_of_range))
+                                    .setSound(ringURI)
+                                    .setTicker(context.getString(R.string.sensCriticalValue))
+                                    .setWhen(System.currentTimeMillis())
+                                    .setAutoCancel(true)
+                                    .setLights(Color.RED,2000,1000)
+                                    .setContentTitle(context.getString(R.string.sensCriticalValue))
+                                    .setVibrate(SENS_OUT_OF_RANGE_VIBRATE)
+                                    .setContentText(sensName + ": " + sensVal);
+
+                            // Notification notification = builder.getNotification(); // до API 16
+                            Notification notification = builder.build();
+
+                            notification.flags |= Notification.FLAG_SHOW_LIGHTS;
+
+                            NotificationManager notificationManager = (NotificationManager) context
+                                    .getSystemService(Context.NOTIFICATION_SERVICE);
+                            notificationManager.notify(mNotificationsCound++, notification);
+                            board.getSens(sensName).clearNotifiedFlag();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     } break;
                 }
             }
