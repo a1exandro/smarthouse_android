@@ -1,10 +1,12 @@
 package ru.wo0t.smarthouse.board;
 
+import android.content.Context;
 import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.common.constants;
 
 /**
@@ -35,6 +37,9 @@ public class Sensor<T> {
     public T getVal() { return mVal; }
     public void setVal(T val) {
         mVal = val;
+        if (mIsNotified) {
+            if (checkValue()) mIsNotified = false;
+        }
         //Log.i(constants.APP_TAG, "Sensor " + mName +" new data: " + mVal);
     }
 
@@ -57,8 +62,21 @@ public class Sensor<T> {
     public int getErrWarn() { return mErrWarn; }
     public void setErrWarn(int errWarn) { mErrWarn = errWarn; }
 
-    public void clearNotifiedFlag() { mIsNotified = false; }
-
+    public String getStringValue(Context context) {
+        String sensVal = "";
+        switch (mSensType) {
+            case TEMP:
+                sensVal = String.valueOf((double) (Object)mVal) +"°C";
+                break;
+            case DIGITAL:
+                if (String.valueOf((double) (Object)mVal).equals(mErrVal))
+                    sensVal = context.getString(R.string.not_ok);
+                else
+                    sensVal = context.getString(R.string.OK);
+                break;
+        }
+        return sensVal;
+    }
     /* returns true if sensor value is ok, else returns false */
     public boolean checkValue(){
         if (mIsNotified || mErrVal == null || mErrSign == null || mErrWarn == 0 || mVal == null) return true;
@@ -110,7 +128,7 @@ public class Sensor<T> {
                 mSensType = sType;
             }
             else {
-                SENSOR_TYPE sType = SENSOR_TYPE.UNKNOWN;
+                SENSOR_TYPE sType;
                 switch (sensSystem) // determine sensors type, based on system. for SYSTEM_SENSORS type will be determined by jSON field.
                 {
                     case CAMES: sType = Sensor.SENSOR_TYPE.CAME; break;

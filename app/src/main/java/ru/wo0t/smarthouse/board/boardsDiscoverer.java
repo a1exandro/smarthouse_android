@@ -30,7 +30,7 @@ import ru.wo0t.smarthouse.common.funcs;
 /**
  * Created by alex on 2/5/15.
  */
-public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
+public class boardsDiscoverer extends AsyncTask<Object, Void, Boolean> {
     public final static int LOOKUP_LOCAL_BOARD = 0x01;
     public final static int LOOKUP_REMOTE_BOARD = 0x01 << 1;
     public final static int LOOKUP_ALL_BOARDS = LOOKUP_LOCAL_BOARD | LOOKUP_REMOTE_BOARD;
@@ -67,7 +67,7 @@ public class boardsDiscover extends AsyncTask<Object, Void, Boolean> {
     }
 
 
-    public boardsDiscover(Context context, int lookup_flags)
+    public boardsDiscoverer(Context context, int lookup_flags)
     {
         mContext = context;
         mLookUpFlag = lookup_flags;

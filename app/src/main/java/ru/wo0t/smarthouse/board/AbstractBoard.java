@@ -49,6 +49,7 @@ abstract public class AbstractBoard {
 
     private boolean showWaitDlg(String text) {
         if (mWaitCfgDialog != null) return false;
+        if (!((SMHZApp) mContext.getApplicationContext()).isMainActivityVisible()) return false;
 
         mWaitCfgDialog = new ProgressDialog(((SMHZApp) mContext.getApplicationContext()).getMainActivity());
         mWaitCfgDialog.setMessage(text);
@@ -246,6 +247,7 @@ abstract public class AbstractBoard {
     protected void close() {
         sendBroadcastMsg(boardsManager.MSG_BOARD_DISCONNECTED);
         clear();
+        closeWaitDlg();
     }
     protected void clear() { mSensors.clear(); }
 

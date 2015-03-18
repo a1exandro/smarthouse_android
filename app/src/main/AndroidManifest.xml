@@ -3,7 +3,7 @@
     package="ru.wo0t.smarthouse" >
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:name=".SMHZApp"
@@ -27,7 +27,12 @@
         <activity
             android:name=".ui.BoardsLookupActivity"
             android:label="@string/title_activity_lookup_boards"
-            android:theme="@style/Theme.AppCompat.Light">
+            android:theme="@style/Theme.AppCompat.Light" >
+        </activity>
+        <activity
+            android:name=".ui.EditSensActivity"
+            android:label="@string/title_activity_edit_sens"
+            android:theme="@style/Theme.AppCompat.Light" >
         </activity>
     </application>
 

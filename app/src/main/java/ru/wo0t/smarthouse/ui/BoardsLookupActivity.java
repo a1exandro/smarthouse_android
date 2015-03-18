@@ -30,7 +30,6 @@ import ru.wo0t.smarthouse.common.constants;
 
 public class BoardsLookupActivity extends Activity {
 
-    public static final int REQUEST_CODE_GET_BOARD = 1;
     BoardsAdapter mAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {

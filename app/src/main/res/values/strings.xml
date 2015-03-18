@@ -28,5 +28,8 @@
     <string name="loadingCfg">Загрузка конфигурации...</string>
     <string name="sensCriticalValue">Критическое значение датчика</string>
 
-    <item type="id" name="TAG_LWSWITCHES_ITEM_ID"/>
+    <item type="id" name="TAG_LW_ITEM_ID"/>
+    <string name="title_activity_edit_sens">EditSensActivity</string>
+
+    <string name="hello_world">Hello world!</string>
 </resources>

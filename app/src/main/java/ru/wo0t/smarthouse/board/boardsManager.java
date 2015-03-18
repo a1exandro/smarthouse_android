@@ -54,7 +54,7 @@ public class boardsManager {
     public static final String SENSOR_VALUE_OUT_OF_RANGE = "SENSOR_VALUE_OUT_OF_RANGE";
 
     private ArrayMap<Integer,AbstractBoard> mActiveBoards;
-    private boardsDiscover mBrdDiscover;
+    private boardsDiscoverer mBrdDiscover;
 
     private int mNotificationsCound = 1;
 
@@ -102,22 +102,27 @@ public class boardsManager {
                     } break;
                     case SENSOR_VALUE_OUT_OF_RANGE: {
                         try {
-                            final long[] SENS_OUT_OF_RANGE_VIBRATE = new long[] { 1000, 1000, 1000};
+                            final long[] SENS_OUT_OF_RANGE_VIBRATE = new long[] { 1000, 1000, 1000 };
+                            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+                            boolean prefAlarms = pref.getBoolean("alarms",true);
+                            if (!prefAlarms) break;
+
+                            boolean prefVibrate = pref.getBoolean("alarm_vibro",true);
+
                             String sensName = intent.getStringExtra(SENSOR_NAME);
-                            double sensVal = intent.getDoubleExtra(SENSOR_VALUE,0); // TODO: process non-double values and add dimension
+
                             Intent notificationIntent = new Intent(context, MainActivity.class);
                             PendingIntent contentIntent = PendingIntent.getActivity(context,
                                     0, notificationIntent,
                                     PendingIntent.FLAG_CANCEL_CURRENT);
-
+                            notificationIntent.putExtra(SENSOR_NAME, sensName);
                             Resources res = context.getResources();
                             Notification.Builder builder = new Notification.Builder(context);
 
-                            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-                            String prefRingtone = pref.getString("alarm_sound","");
+                            String prefRingtone = pref.getString("alarm_sound","not_set");
                             Uri ringURI;
 
-                            if (prefRingtone.equals(""))
+                            if (prefRingtone.equals("not_set"))
                                 ringURI =  RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
                             else
                                 ringURI = Uri.parse(prefRingtone);
@@ -125,18 +130,18 @@ public class boardsManager {
 
                             builder.setContentIntent(contentIntent)
                                     .setSmallIcon(R.mipmap.ic_notify_sens_out_of_range)
+                                    .setLargeIcon(BitmapFactory.decodeResource(res, R.mipmap.ic_notify_sens_out_of_range));
 
-                                    .setLargeIcon(BitmapFactory.decodeResource(res, R.mipmap.ic_notify_sens_out_of_range))
-                                    .setSound(ringURI)
-                                    .setTicker(context.getString(R.string.sensCriticalValue))
+                            if (!prefRingtone.isEmpty())  builder.setSound(ringURI);
+                            if (prefVibrate) builder.setVibrate(SENS_OUT_OF_RANGE_VIBRATE);
+
+                            builder.setTicker(context.getString(R.string.sensCriticalValue))
                                     .setWhen(System.currentTimeMillis())
                                     .setAutoCancel(true)
                                     .setLights(Color.RED,2000,1000)
                                     .setContentTitle(context.getString(R.string.sensCriticalValue))
-                                    .setVibrate(SENS_OUT_OF_RANGE_VIBRATE)
-                                    .setContentText(sensName + ": " + sensVal);
+                                    .setContentText(sensName + ": " + board.getSens(sensName).getStringValue(mContext));
 
-                            // Notification notification = builder.getNotification(); // до API 16
                             Notification notification = builder.build();
 
                             notification.flags |= Notification.FLAG_SHOW_LIGHTS;
@@ -144,7 +149,6 @@ public class boardsManager {
                             NotificationManager notificationManager = (NotificationManager) context
                                     .getSystemService(Context.NOTIFICATION_SERVICE);
                             notificationManager.notify(mNotificationsCound++, notification);
-                            board.getSens(sensName).clearNotifiedFlag();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -169,8 +173,8 @@ public class boardsManager {
                 connectToLocalBoard(boardId,boardName,ipAddr);
             }
             else {
-                String login = pref.getString(BOARD_LOGIN,"");
-                String password = pref.getString(BOARD_PW,"");
+                String login = pref.getString(BOARD_LOGIN, "");
+                String password = pref.getString(BOARD_PW, "");
                 connectToRemoteBoard(boardId, boardName, login, password);
             }
         }
@@ -192,7 +196,7 @@ public class boardsManager {
         mBrdDiscover.cancel(false);
     }
     public void lookUpForBoards(int remotePort, String login, String password) {
-        mBrdDiscover = new boardsDiscover(mContext,boardsDiscover.LOOKUP_ALL_BOARDS);
+        mBrdDiscover = new boardsDiscoverer(mContext, boardsDiscoverer.LOOKUP_ALL_BOARDS);
         mBrdDiscover.execute(remotePort, login, password);
     }
 

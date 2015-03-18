@@ -179,7 +179,6 @@ public class SettingsActivity extends PreferenceActivity {
                 // For all other preferences, set the summary to the value's
                 // simple string representation.
 
-                String t = preference.getKey();
                 if (!preference.getKey().equals("remote_password"))
                     preference.setSummary(stringValue);
             }

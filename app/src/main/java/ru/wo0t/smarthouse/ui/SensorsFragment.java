@@ -1,8 +1,12 @@
 package ru.wo0t.smarthouse.ui;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -11,6 +15,7 @@ import android.widget.TextView;
 
 import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.board.Sensor;
+import ru.wo0t.smarthouse.board.boardsManager;
 import ru.wo0t.smarthouse.common.constants;
 
 
@@ -34,25 +39,11 @@ public class SensorsFragment extends BasePageFragment {
         Sensor sensor = (Sensor)(mAdapter.getItem(position));
 
         if (sensor != null) {
-
             try {
                 ((TextView) view.findViewById(R.id.itemSenseName)).setText(sensor.getName());
                 if (sensor.getVal() != null) {
-                    String sVal = "";
-                    switch (sensor.getType()) {
-                        case TEMP:
-                            sVal = String.valueOf((double) sensor.getVal()) +"°C";
-                            break;
-                        case DIGITAL:
-                            if (String.valueOf((double) sensor.getVal()).equals(sensor.getErrVal()))
-                                sVal = getString(R.string.not_ok);
-                            else
-                                sVal = getString(R.string.OK);
-                            break;
-                    }
-                    ((TextView) view.findViewById(R.id.itemSensVal)).setText(sVal);
+                    ((TextView) view.findViewById(R.id.itemSensVal)).setText(sensor.getStringValue(getActivity().getApplicationContext()));
                 }
-
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -60,6 +51,9 @@ public class SensorsFragment extends BasePageFragment {
         }
         else
             Log.d(constants.APP_TAG, "could not find sensor at pos " + position);
+
+        view.setTag(R.id.TAG_LW_ITEM_ID, position);
+
         return view;
     }
 
@@ -78,7 +72,38 @@ public class SensorsFragment extends BasePageFragment {
             }
         });
 
+        lvMain.setOnItemLongClickListener( new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getActivity(), EditSensActivity.class);
+                Sensor sensor = (Sensor)parent.getItemAtPosition(position);
+                intent.putExtra(boardsManager.BOARD_ID, mBoardId);
+                intent.putExtra(boardsManager.SENSOR_NAME, sensor.getName());
+                startActivityForResult(intent, constants.REQUEST_CODE_EDIT_SENS);
+                return true;
+            }
+        });
+
         return rootView;
 
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        try {
+            switch (requestCode) {
+                case constants.REQUEST_CODE_EDIT_SENS: {
+                    if (resultCode == Activity.RESULT_OK) {
+
+                    }
+                    Log.i(constants.APP_TAG, "sensor editing finished");
+                } break;
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

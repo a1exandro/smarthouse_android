@@ -52,7 +52,7 @@ public class MainActivity extends FragmentActivity {
 
                 if (defaultBoard == -1) {
                     Intent intent = new Intent(this, BoardsLookupActivity.class);
-                    startActivityForResult(intent, BoardsLookupActivity.REQUEST_CODE_GET_BOARD);
+                    startActivityForResult(intent, constants.REQUEST_CODE_GET_BOARD);
                 } else {
                     mBoardId = defaultBoard;
                     ((SMHZApp) getApplication()).setBoardId(mBoardId);
@@ -124,7 +124,7 @@ public class MainActivity extends FragmentActivity {
             } break;
             case R.id.action_boards_lookup: {
                 Intent intent = new Intent(this, BoardsLookupActivity.class);
-                startActivityForResult(intent, BoardsLookupActivity.REQUEST_CODE_GET_BOARD);
+                startActivityForResult(intent, constants.REQUEST_CODE_GET_BOARD);
             } break;
             default:  return super.onOptionsItemSelected(item);
         }
@@ -133,11 +133,23 @@ public class MainActivity extends FragmentActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        ((SMHZApp) getApplication()).setMainActivityVisibility(true);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ((SMHZApp) getApplication()).setMainActivityVisibility(false);
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         try {
             switch (requestCode) {
-                case BoardsLookupActivity.REQUEST_CODE_GET_BOARD:
+                case constants.REQUEST_CODE_GET_BOARD:
                 {
                     if (resultCode == RESULT_OK) {
                         String boardDscr = data.getStringExtra(boardsManager.BOARD_DESCR);
@@ -171,7 +183,7 @@ public class MainActivity extends FragmentActivity {
                     }
                     else
                         Log.d(constants.APP_TAG, "Board selection has been canceled!");
-                }
+                } break;
             }
         }
         catch (Exception e) {

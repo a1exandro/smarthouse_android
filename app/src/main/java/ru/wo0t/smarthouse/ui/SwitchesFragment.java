@@ -39,12 +39,12 @@ public class SwitchesFragment extends BasePageFragment {
 
         if (sensor != null) {
             ((Switch) view.findViewById(R.id.itemSwitch)).setText(sensor.getName());
-            (view.findViewById(R.id.itemSwitch)).setTag(R.id.TAG_LWSWITCHES_ITEM_ID, position);
+            (view.findViewById(R.id.itemSwitch)).setTag(R.id.TAG_LW_ITEM_ID, position);
             ((Switch) view.findViewById(R.id.itemSwitch)).setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_UP) {
-                        Sensor sens = (Sensor) mAdapter.getItem((int) ((Switch) v.findViewById(R.id.itemSwitch)).getTag(R.id.TAG_LWSWITCHES_ITEM_ID));
+                        Sensor sens = (Sensor) mAdapter.getItem((int) ((Switch) v.findViewById(R.id.itemSwitch)).getTag(R.id.TAG_LW_ITEM_ID));
                         onItemSelected(sens, !((Switch) v.findViewById(R.id.itemSwitch)).isChecked());
                         return true;
                     }

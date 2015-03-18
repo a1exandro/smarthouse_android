@@ -16,12 +16,16 @@ public class SMHZApp extends Application {
     private boardsManager mBoardsManager;
     private int mBoardId = -1;
     private Context mMainActivity;
+    private boolean mIsMainActivityVisible = false;
 
     @Override
     public void onCreate() {
         super.onCreate();
         mBoardsManager = new boardsManager(this);
     }
+
+    public void setMainActivityVisibility(boolean visible) { mIsMainActivityVisible = visible; }
+    public boolean isMainActivityVisible() { return mIsMainActivityVisible; }
 
     public boardsManager getBoardsManager() {
         return mBoardsManager;
