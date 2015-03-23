@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -48,31 +49,6 @@ public class RemoteBoard extends AbstractBoard {
         cl.sendPkt(pkt);
     }
 
-    public void updateSens(Sensor sens) {
-        String cmd = "";
-        switch (sens.getSystem()){
-            case SWITCHES:
-                cmd = SYSTEM_SWITCHES + " get " + "p" + sens.getAddr();
-                break;
-            case SENSES:
-                String tpStr = "";
-                switch (sens.getType()) {
-                    case TEMP:
-                        tpStr = "T";
-                        break;
-                    case DIGITAL:
-                        tpStr = "D";
-                        break;
-                }
-                cmd = SYSTEM_SENSORS + " get " + tpStr+ sens.getAddr();
-                break;
-            case CAMES:
-                cmd = SYSTEM_CAME + " get " + "c" + sens.getAddr();
-                break;
-        }
-        sendPkt(cmd.getBytes());
-    }
-
     @Override
     public void close() {
         super.close();
@@ -88,7 +64,6 @@ public class RemoteBoard extends AbstractBoard {
     }
     private class httpClient extends Thread {
         String mLogin, mPassword;
-        String mUrlString = constants.REMOTE_BOARD_URL_STRING;
         int mBoardId;
         int mLastMsgId;
         int mSockReadTimeout; // seconds
@@ -120,8 +95,12 @@ public class RemoteBoard extends AbstractBoard {
         }
 
         private InputStream downloadUrl(String cmd, String message) throws IOException {
+            return downloadUrl(constants.REMOTE_BOARD_URL_HOST + constants.REMOTE_BOARD_URL_STRING, cmd, message);
+        }
 
-            URL url = new URL(mUrlString);
+        private InputStream downloadUrl(String urlString, String cmd, String message) throws IOException {
+
+            URL url = new URL(urlString);
             mConn = (HttpURLConnection) url.openConnection();
             mConn.setReadTimeout(mSockReadTimeout * 1000 + 3000/* milliseconds */);
             mConn.setConnectTimeout(15000 /* milliseconds */);
@@ -242,6 +221,38 @@ public class RemoteBoard extends AbstractBoard {
             }
         }
 
+        private Object getExtraData(String msg) {
+            Object eData = null;
+            String[] msgData = msg.split(":",2);
+            if (msgData.length < 2) return null;
+            int offset = 0;
+            try {
+                JSONObject jObj = new JSONObject(msgData[1].trim());
+                if (jObj.has("type")) {
+                    switch (jObj.getString("type")) {
+                        case "picture": // get camera image
+                            if (jObj.has("fname")) {
+                                JSONArray jFiles = new JSONArray(jObj.getString("fname"));
+                                String fName = new File(jFiles.get(0).toString()).getName();
+                                String fullUrl = constants.REMOTE_BOARD_URL_HOST + "modules/camera/img/" + mBoardId + "/" + fName;
+                                InputStream input = downloadUrl(fullUrl," "," ");
+
+
+                                byte[] picData = new byte[mConn.getContentLength()];
+
+                                while ( (offset += input.read(picData,offset, mConn.getContentLength() - offset)) > 0);
+                                eData = picData;
+                            }
+                            break;
+                    }
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return eData;
+        }
+
         private boolean onMsgRecv(String msgData)
         {
             Log.i(constants.APP_TAG, "Recv: " + msgData);
@@ -276,14 +287,14 @@ public class RemoteBoard extends AbstractBoard {
 
                     if (!(jObj instanceof JSONArray)) //
                     {
-                        messageParser(board_data);
+                        messageParser(board_data, getExtraData(board_data));
                     }
                     else
                     {
                         JSONArray boardArrData = (JSONArray)jObj;
                         for (int i = 0; i < boardArrData.length(); i++) {
                             String dat = boardArrData.getString(i);
-                            messageParser(dat);
+                            messageParser(dat, getExtraData(dat));
                         }
                     }
                 } catch (Exception e) {

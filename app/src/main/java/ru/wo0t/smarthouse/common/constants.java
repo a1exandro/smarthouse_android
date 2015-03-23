@@ -9,7 +9,8 @@ public interface constants {
     public static final String APP_TAG = "smhz";
 
     public static final String LOCAL_BOARD_KEYWORD = "smhz";
-    public static final String REMOTE_BOARD_URL_STRING = "http://dacha.wo0t.ru/remote.php";
+    public static final String REMOTE_BOARD_URL_HOST = "http://dacha.wo0t.ru/";
+    public static final String REMOTE_BOARD_URL_STRING = "remote.php";
     public static final String REMOTE_BOARD_USER = "admin";
     public static final String REMOTE_BOARD_PASSWORD = "asdfq1";
 

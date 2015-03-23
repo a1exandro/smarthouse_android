@@ -14,6 +14,6 @@
         android:layout_gravity="end"
         android:gravity="center_vertical|center_horizontal"
         android:textStyle="bold"
-        android:textColor="#ff2fa5ff" />
+        android:textColor="@android:color/black" />
 
 </LinearLayout>

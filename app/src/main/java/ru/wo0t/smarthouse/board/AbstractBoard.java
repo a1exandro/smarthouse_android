@@ -148,7 +148,7 @@ abstract public class AbstractBoard {
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
     }
 
-    protected void messageParser(String msg) {
+    protected void messageParser(String msg, Object extra) {
         String[] msgData = msg.split(":",2);
         if (msgData.length < 2) return;
         String system = msgData[0].trim().toLowerCase();
@@ -186,16 +186,25 @@ abstract public class AbstractBoard {
                     if (jData.has("addr")) {
                         Sensor sens = getSensByAddr(jData.getString("addr"));
                         if (sens != null) {
-                            sens.setVal(jData.getDouble("data"));
+                            double sensVal = 0;
+                            switch (sens.getType()) {
+                                case CAME:
+                                    sens.setVal(extra);
+                                    break;
+                                default :
+                                    sens.setVal(jData.getDouble("data"));
+                                    sensVal = (double)sens.getVal();
+                            }
 
                             Bundle sensData = new Bundle();
 
                             sensData.putString(boardsManager.SENSOR_NAME, sens.getName());
                             sensData.putString(boardsManager.SENSOR_ADDR, sens.getAddr());
                             sensData.putInt(boardsManager.SENSOR_TYPE, sens.getType().ordinal());
-                            sensData.putDouble(boardsManager.SENSOR_VALUE, (double)sens.getVal());
-                            sensData.putString(boardsManager.MSG_SYSTEM_NAME, sensSystem.toString());
 
+
+                            sensData.putDouble(boardsManager.SENSOR_VALUE, sensVal);
+                            sensData.putString(boardsManager.MSG_SYSTEM_NAME, sensSystem.toString());
                             sendBroadcastMsg(boardsManager.MSG_SENSOR_DATA, sensData);
 
                             if (!sens.checkValue()) sendBroadcastMsg(boardsManager.SENSOR_VALUE_OUT_OF_RANGE, sensData);
@@ -244,6 +253,31 @@ abstract public class AbstractBoard {
         sendPkt(cmd.getBytes());
     }
 
+    public void updateSens(Sensor sens) {
+        String cmd = "";
+        switch (sens.getSystem()){
+            case SWITCHES:
+                cmd = SYSTEM_SWITCHES + " get " + "p" + sens.getAddr();
+                break;
+            case SENSES:
+                String tpStr = "";
+                switch (sens.getType()) {
+                    case TEMP:
+                        tpStr = "T";
+                        break;
+                    case DIGITAL:
+                        tpStr = "D";
+                        break;
+                }
+                cmd = SYSTEM_SENSORS + " get " + tpStr+ sens.getAddr();
+                break;
+            case CAMES:
+                cmd = SYSTEM_CAME + " get " + "c" + sens.getAddr();
+                break;
+        }
+        sendPkt(cmd.getBytes());
+    }
+
     protected void close() {
         sendBroadcastMsg(boardsManager.MSG_BOARD_DISCONNECTED);
         clear();
@@ -251,6 +285,5 @@ abstract public class AbstractBoard {
     }
     protected void clear() { mSensors.clear(); }
 
-    abstract public void updateSens(Sensor sens);
     abstract public void sendPkt(byte[] data);
 }

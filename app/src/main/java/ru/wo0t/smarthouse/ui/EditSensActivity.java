@@ -23,12 +23,7 @@ public class EditSensActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_sens);
-    }
 
-
-    @Override
-    protected void onResume() {
-        super.onResume();
         Intent intent = getIntent();
         int boardId = intent.getIntExtra(boardsManager.BOARD_ID, -1);
         AbstractBoard board = ((SMHZApp) getApplication()).getBoardsManager().getBoard(boardId);
@@ -39,6 +34,9 @@ public class EditSensActivity extends ActionBarActivity {
             Log.i(constants.APP_TAG, "edit sens: " + sens.getName());
         }
     }
+
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

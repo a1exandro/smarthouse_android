@@ -1,14 +1,22 @@
 package ru.wo0t.smarthouse.ui;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.board.Sensor;
+import ru.wo0t.smarthouse.board.boardsManager;
+import ru.wo0t.smarthouse.common.constants;
 
 
 public class CamerasFragment extends BasePageFragment {
@@ -20,6 +28,7 @@ public class CamerasFragment extends BasePageFragment {
 
     void onItemSelected(Sensor sensor) {
         getBoard().onSensorAction(sensor, null);
+        updateSensDialog(sensor);
     }
 
     @Override
@@ -30,6 +39,27 @@ public class CamerasFragment extends BasePageFragment {
         }
 
         Sensor sensor = (Sensor)mAdapter.getItem(position);
+
+        if (sensor != null) {
+            try {
+
+                if (sensor.getVal() != null) {
+                    byte[] picData = (byte[])sensor.getVal();
+                    Bitmap bMap = BitmapFactory.decodeByteArray( picData, 0, picData.length );
+
+                    if (bMap != null) {
+                        ((ImageView) view.findViewById(R.id.itemCameraPicture)).setImageBitmap(bMap);
+                        ((ImageView) view.findViewById(R.id.itemCameraPicture)).setContentDescription(sensor.getName());
+                        ((TextView) view.findViewById(R.id.itemCameraDescr)).setText(sensor.getName());
+                    }
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else
+            Log.d(constants.APP_TAG, "could not find sensor at pos " + position);
 
         return view;
     }
@@ -44,10 +74,22 @@ public class CamerasFragment extends BasePageFragment {
         lvMain.setOnItemClickListener( new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getActivity(), ShowPictureFullScreen.class);
                 Sensor sensor = (Sensor)parent.getItemAtPosition(position);
-                onItemSelected(sensor);
+                intent.putExtra(boardsManager.BOARD_ID, mBoardId);
+                intent.putExtra(boardsManager.SENSOR_NAME, sensor.getName());
+                startActivity(intent);
             }
         });
+
+        lvMain.setOnItemLongClickListener( new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+                return false;
+            }
+        });
+
 
         return rootView;
 

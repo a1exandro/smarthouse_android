@@ -18,13 +18,15 @@ import ru.wo0t.smarthouse.common.constants;
 
 
 public class SwitchesFragment extends BasePageFragment {
+    private final int VALUE_ON = 0;
+    private final int VALUE_OFF = 1;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
     void onItemSelected(Sensor sensor, boolean val) {
-        getBoard().onSensorAction(sensor, val? 1:0);
+        getBoard().onSensorAction(sensor, val? VALUE_ON:VALUE_OFF);
         updateSensDialog(sensor);
     }
 
@@ -55,7 +57,7 @@ public class SwitchesFragment extends BasePageFragment {
             if (sensor.getVal() != null)
             {
                 double val = (double)sensor.getVal();
-                ((Switch) view.findViewById(R.id.itemSwitch)).setChecked(val == 1);
+                ((Switch) view.findViewById(R.id.itemSwitch)).setChecked(val == VALUE_ON);
             }
         }
         else

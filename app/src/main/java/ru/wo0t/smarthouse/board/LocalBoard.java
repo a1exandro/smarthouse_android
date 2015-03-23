@@ -44,31 +44,6 @@ public class LocalBoard extends AbstractBoard {
         cl.sendPkt(pkt);
     }
 
-    public void updateSens(Sensor sens) {
-        String cmd = "";
-        switch (sens.getSystem()){
-            case SWITCHES:
-                cmd = SYSTEM_SWITCHES + " get " + "p" + sens.getAddr();
-                break;
-            case SENSES:
-                String tpStr = "";
-                switch (sens.getType()) {
-                    case TEMP:
-                        tpStr = "T";
-                        break;
-                    case DIGITAL:
-                        tpStr = "D";
-                        break;
-                }
-                cmd = SYSTEM_SENSORS + " get " + tpStr+ sens.getAddr();
-                break;
-            case CAMES:
-                cmd = SYSTEM_CAME + " get " + "c" + sens.getAddr();
-                break;
-        }
-        sendPkt(cmd.getBytes());
-    }
-
     @Override
     public void close() {
         super.close();
@@ -139,7 +114,7 @@ public class LocalBoard extends AbstractBoard {
                             byte[] buf = new byte[len];
                             if (len > 0) {
                                 dis.readFully(buf);
-                                messageParser(new String(buf));
+                                messageParser(new String(buf), null);
                             }
                         }
 
