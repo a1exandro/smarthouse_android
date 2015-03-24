@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">smartHouse</string>
+    <string name="app_name">Умный дом</string>
     <string name="action_settings">Настройки</string>
 
     <string name="frame_info">Информация</string>
@@ -25,18 +25,12 @@
     <string name="sensSuccessfullyUpdated">"Успешно обновлено: "</string>
     <string name="successfullyConnectedToBoard">"Успешно подключен к плате: "</string>
     <string name="disconnectedFromBoard">"Отключен от платы: "</string>
-    <string name="loadingCfg">Загрузка конфигурации...</string>
+    <string name="loadingCfg">Загрузка конфигурации…</string>
     <string name="sensCriticalValue">Критическое значение датчика</string>
 
     <item type="id" name="TAG_LW_ITEM_ID"/>
-    <string name="title_activity_edit_sens">EditSensActivity</string>
 
-    <string name="hello_world">Hello world!</string>
-
-    <string name="title_activity_activity_show_picture">activity_show_picture</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
-
-    <string name="title_activity_show_picture_full_screen">ShowPictureFullScreen</string>
+    <string name="title_activity_edit_sens">Редактирование</string>
+    <string name="title_activity_show_picture_full_screen">Фото с камеры</string>
     <string name="refresh">Обновить</string>
 </resources>

@@ -3,6 +3,7 @@ package ru.wo0t.smarthouse.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -43,6 +44,12 @@ public class SensorsFragment extends BasePageFragment {
                 ((TextView) view.findViewById(R.id.itemSenseName)).setText(sensor.getName());
                 if (sensor.getVal() != null) {
                     ((TextView) view.findViewById(R.id.itemSensVal)).setText(sensor.getStringValue(getActivity().getApplicationContext()));
+                    if (!sensor.checkValue()) {
+                        ((TextView) view.findViewById(R.id.itemSensVal)).setTextColor(Color.RED);
+                    } else
+                    {
+                        ((TextView) view.findViewById(R.id.itemSensVal)).setTextColor(Color.LTGRAY);
+                    }
                 }
             }
             catch (Exception e) {

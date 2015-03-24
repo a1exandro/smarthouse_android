@@ -26,7 +26,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
     public PagerAdapter(FragmentManager fm, Context context, int boardId) {
         super(fm);
         mFragments = new ArrayList<>();
-// INFO
+// INFO INDEX 0
         Fragment fragment = new InfoFragment();
         Bundle args = new Bundle();
         args.putInt(boardsManager.BOARD_ID, boardId);
@@ -34,7 +34,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
         fragment.setArguments(args);
         Page page = new Page(context, fragment, PageType.INFO);
         mFragments.add(page);
-// SENSORS
+// SENSORS INDEX 1
         fragment = new SensorsFragment();
         args = new Bundle();
         args.putInt(boardsManager.BOARD_ID, boardId);
@@ -42,7 +42,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
         fragment.setArguments(args);
         page = new Page(context, fragment, PageType.SENS);
         mFragments.add(page);
-// SWITCHES
+// SWITCHES INDEX 2
         fragment = new SwitchesFragment();
         args = new Bundle();
         args.putInt(boardsManager.BOARD_ID, boardId);
@@ -50,7 +50,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
         fragment.setArguments(args);
         page = new Page(context, fragment, PageType.SWITCH);
         mFragments.add(page);
-// CAMERAS
+// CAMERAS INDEX 3
         fragment = new CamerasFragment();
         args = new Bundle();
         args.putInt(boardsManager.BOARD_ID, boardId);
@@ -60,6 +60,12 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
         mFragments.add(page);
     }
 
+    public int getSystemIndex(Sensor.SENSOR_SYSTEM system) {
+        if (system == Sensor.SENSOR_SYSTEM.SENSES) return 1;
+        if (system == Sensor.SENSOR_SYSTEM.SWITCHES) return 2;
+        if (system == Sensor.SENSOR_SYSTEM.CAMES) return 3;
+        return 0;
+    }
     @Override
     public Fragment getItem(int i) { return mFragments.get(i).mFragment; }
 

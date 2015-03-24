@@ -11,8 +11,10 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -21,6 +23,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import ru.wo0t.smarthouse.R;
+import ru.wo0t.smarthouse.SMHZApp;
 import ru.wo0t.smarthouse.common.constants;
 import ru.wo0t.smarthouse.ui.MainActivity;
 
@@ -56,7 +59,7 @@ public class boardsManager {
     private ArrayMap<Integer,AbstractBoard> mActiveBoards;
     private boardsDiscoverer mBrdDiscover;
 
-    private int mNotificationsCound = 1;
+    private int mNotificationsCount = 1;
 
     public boardsManager(Context context) {
         mContext = context;
@@ -102,53 +105,71 @@ public class boardsManager {
                     } break;
                     case SENSOR_VALUE_OUT_OF_RANGE: {
                         try {
-                            final long[] SENS_OUT_OF_RANGE_VIBRATE = new long[] { 1000, 1000, 1000 };
-                            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-                            boolean prefAlarms = pref.getBoolean("alarms",true);
-                            if (!prefAlarms) break;
-
-                            boolean prefVibrate = pref.getBoolean("alarm_vibro",true);
-
                             String sensName = intent.getStringExtra(SENSOR_NAME);
 
-                            Intent notificationIntent = new Intent(context, MainActivity.class);
-                            PendingIntent contentIntent = PendingIntent.getActivity(context,
-                                    0, notificationIntent,
-                                    PendingIntent.FLAG_CANCEL_CURRENT);
-                            notificationIntent.putExtra(SENSOR_NAME, sensName);
-                            Resources res = context.getResources();
-                            Notification.Builder builder = new Notification.Builder(context);
+                            final long[] SENS_OUT_OF_RANGE_VIBRATE = new long[]{1000, 1000, 1000};
 
-                            String prefRingtone = pref.getString("alarm_sound","not_set");
+                            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+
+                            boolean prefAlarms = pref.getBoolean("alarms", true);
+                            if (!prefAlarms) break;
+
+                            String prefRingtone = pref.getString("alarm_sound", "not_set");
+                            boolean prefVibrate = pref.getBoolean("alarm_vibro", true);
+
                             Uri ringURI;
-
                             if (prefRingtone.equals("not_set"))
-                                ringURI =  RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                                ringURI = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
                             else
                                 ringURI = Uri.parse(prefRingtone);
 
+                            if (((SMHZApp)mContext).isMainActivityVisible()) {
+                                Toast.makeText(mContext, mContext.getString(R.string.sensCriticalValue) + " '" + sensName + "'", Toast.LENGTH_LONG).show();
 
-                            builder.setContentIntent(contentIntent)
-                                    .setSmallIcon(R.mipmap.ic_notify_sens_out_of_range)
-                                    .setLargeIcon(BitmapFactory.decodeResource(res, R.mipmap.ic_notify_sens_out_of_range));
+                                if (!prefRingtone.isEmpty()) {
+                                    final MediaPlayer mp = MediaPlayer.create(mContext, ringURI);
+                                    mp.start();
+                                }
 
-                            if (!prefRingtone.isEmpty())  builder.setSound(ringURI);
-                            if (prefVibrate) builder.setVibrate(SENS_OUT_OF_RANGE_VIBRATE);
+                                if (prefVibrate) {
+                                    Vibrator v = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+                                    v.vibrate(SENS_OUT_OF_RANGE_VIBRATE, -1);
+                                }
+                            }
+                            else {
 
-                            builder.setTicker(context.getString(R.string.sensCriticalValue))
-                                    .setWhen(System.currentTimeMillis())
-                                    .setAutoCancel(true)
-                                    .setLights(Color.RED,2000,1000)
-                                    .setContentTitle(context.getString(R.string.sensCriticalValue))
-                                    .setContentText(sensName + ": " + board.getSens(sensName).getStringValue(mContext));
+                                Intent notificationIntent = new Intent(context, MainActivity.class);
+                                notificationIntent.putExtra(SENSOR_NAME, sensName);
 
-                            Notification notification = builder.build();
+                                PendingIntent contentIntent = PendingIntent.getActivity(context,
+                                        0, notificationIntent,
+                                        PendingIntent.FLAG_UPDATE_CURRENT);
 
-                            notification.flags |= Notification.FLAG_SHOW_LIGHTS;
+                                Resources res = context.getResources();
+                                Notification.Builder builder = new Notification.Builder(context);
 
-                            NotificationManager notificationManager = (NotificationManager) context
-                                    .getSystemService(Context.NOTIFICATION_SERVICE);
-                            notificationManager.notify(mNotificationsCound++, notification);
+                                builder.setContentIntent(contentIntent)
+                                        .setSmallIcon(R.mipmap.ic_notify_sens_out_of_range)
+                                        .setLargeIcon(BitmapFactory.decodeResource(res, R.mipmap.ic_notify_sens_out_of_range));
+
+                                if (!prefRingtone.isEmpty()) builder.setSound(ringURI);
+                                if (prefVibrate) builder.setVibrate(SENS_OUT_OF_RANGE_VIBRATE);
+
+                                builder.setTicker(context.getString(R.string.sensCriticalValue))
+                                        .setWhen(System.currentTimeMillis())
+                                        .setAutoCancel(true)
+                                        .setLights(Color.RED, 2000, 1000)
+                                        .setContentTitle(context.getString(R.string.sensCriticalValue))
+                                        .setContentText(sensName + ": " + board.getSens(sensName).getStringValue(mContext));
+
+                                Notification notification = builder.build();
+
+                                notification.flags |= Notification.FLAG_SHOW_LIGHTS;
+
+                                NotificationManager notificationManager = (NotificationManager) context
+                                        .getSystemService(Context.NOTIFICATION_SERVICE);
+                                notificationManager.notify(mNotificationsCount++, notification);
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

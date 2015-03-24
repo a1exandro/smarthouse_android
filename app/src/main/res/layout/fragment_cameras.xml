@@ -4,7 +4,8 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="ru.wo0t.smarthouse.ui.CamerasFragment">
+    tools:context="ru.wo0t.smarthouse.ui.CamerasFragment"
+    android:background="@android:color/black">
 
     <ListView
         android:layout_width="wrap_content"

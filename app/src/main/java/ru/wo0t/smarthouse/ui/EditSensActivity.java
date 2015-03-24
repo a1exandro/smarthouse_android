@@ -18,7 +18,7 @@ import ru.wo0t.smarthouse.board.boardsManager;
 import ru.wo0t.smarthouse.common.constants;
 
 public class EditSensActivity extends ActionBarActivity {
-
+    private Sensor mSensor = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,7 +30,7 @@ public class EditSensActivity extends ActionBarActivity {
         if (board != null) {
             Sensor sens = null;
             if (!intent.getStringExtra(boardsManager.SENSOR_NAME).isEmpty())        // edit sensor
-                sens = board.getSens(intent.getStringExtra(boardsManager.SENSOR_NAME));
+                mSensor = board.getSens(intent.getStringExtra(boardsManager.SENSOR_NAME));
             Log.i(constants.APP_TAG, "edit sens: " + sens.getName());
         }
     }

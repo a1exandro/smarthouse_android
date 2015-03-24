@@ -69,7 +69,7 @@ public class Sensor<T> {
                 sensVal = String.valueOf((double) (Object)mVal) +"°C";
                 break;
             case DIGITAL:
-                if (String.valueOf((double) (Object)mVal).equals(mErrVal))
+                if (((double) (Object)mVal) == Double.valueOf(mErrVal))
                     sensVal = context.getString(R.string.not_ok);
                 else
                     sensVal = context.getString(R.string.OK);
@@ -78,29 +78,31 @@ public class Sensor<T> {
         return sensVal;
     }
     /* returns true if sensor value is ok, else returns false */
+    public boolean isNotified() {
+        if (mErrWarn == 0) return true;
+        return mIsNotified;
+    }
+    public void setNotified(boolean notified) { mIsNotified = notified; }
     public boolean checkValue(){
-        if (mIsNotified || mErrVal == null || mErrSign == null || mErrWarn == 0 || mVal == null) return true;
+        if (mErrVal == null || mErrSign == null || mVal == null) return true;
 
         switch (mSensSystem) {
             case SENSES: {
                 switch (mErrSign) {
                     case "0": { // less
                         if ((double)(Object)getVal() < Double.valueOf(mErrVal)) {
-                            mIsNotified = true;
                             return false;
                         }
                         else return true;
                     }
                     case "1": { // equal
                         if ((double)(Object)getVal() == Double.valueOf(mErrVal)) {
-                            mIsNotified = true;
                             return false;
                         }
                         else return true;
                     }
                     case "2": { // more
                         if ((double)(Object)getVal() > Double.valueOf(mErrVal)) {
-                            mIsNotified = true;
                             return false;
                         }
                         else return true;

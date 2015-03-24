@@ -207,7 +207,10 @@ abstract public class AbstractBoard {
                             sensData.putString(boardsManager.MSG_SYSTEM_NAME, sensSystem.toString());
                             sendBroadcastMsg(boardsManager.MSG_SENSOR_DATA, sensData);
 
-                            if (!sens.checkValue()) sendBroadcastMsg(boardsManager.SENSOR_VALUE_OUT_OF_RANGE, sensData);
+                            if (!sens.checkValue() && !sens.isNotified()) {
+                                sendBroadcastMsg(boardsManager.SENSOR_VALUE_OUT_OF_RANGE, sensData);
+                                sens.setNotified(true);
+                            }
                         }
                     }
                     break;

@@ -4,7 +4,8 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="ru.wo0t.smarthouse.ui.BoardsLookupActivity">
+    tools:context="ru.wo0t.smarthouse.ui.BoardsLookupActivity"
+    android:background="@android:color/black">
 
     <TextView
         android:layout_width="wrap_content"
@@ -12,7 +13,8 @@
         android:text="@string/founded_boards"
         android:id="@+id/textView4"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:textColor="@android:color/background_light" />
     <ListView
         android:id="@+id/boardsList"
         android:layout_width="wrap_content"

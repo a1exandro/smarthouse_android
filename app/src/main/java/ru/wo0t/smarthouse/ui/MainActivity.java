@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.SMHZApp;
 import ru.wo0t.smarthouse.board.AbstractBoard;
+import ru.wo0t.smarthouse.board.Sensor;
 import ru.wo0t.smarthouse.board.boardsManager;
 import ru.wo0t.smarthouse.common.constants;
 
@@ -65,6 +66,12 @@ public class MainActivity extends FragmentActivity {
         }
 
         configureActionBar();
+        Intent intent = getIntent();
+        String sensOutOfRangeName = intent.getStringExtra(boardsManager.SENSOR_NAME);
+        if (sensOutOfRangeName != null && mBoardId != -1) {
+            Sensor sensor = ((SMHZApp)getApplication()).getBoardsManager().getBoard(mBoardId).getSens(sensOutOfRangeName);
+            mViewPager.setCurrentItem(mPagerAdapter.getSystemIndex(sensor.getSystem()));
+        }
     }
 
     private void configureActionBar() {

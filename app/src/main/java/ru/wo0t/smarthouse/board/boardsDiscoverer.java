@@ -172,7 +172,7 @@ public class boardsDiscoverer extends AsyncTask<Object, Void, Boolean> {
     private class RemoteDiscover extends Thread {
         String mLogin, mPassword;
         int mSockReadTimeout = 10;
-        String mUrlString = constants.REMOTE_BOARD_URL_STRING;
+        String mUrlString = constants.REMOTE_BOARD_URL_HOST+constants.REMOTE_BOARD_URL_STRING;
         HttpURLConnection mConn;
 
         public RemoteDiscover(String httpUser, String httpPasswd)

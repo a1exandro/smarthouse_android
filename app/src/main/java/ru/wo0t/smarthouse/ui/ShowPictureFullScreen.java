@@ -5,21 +5,30 @@ import ru.wo0t.smarthouse.SMHZApp;
 import ru.wo0t.smarthouse.board.AbstractBoard;
 import ru.wo0t.smarthouse.board.Sensor;
 import ru.wo0t.smarthouse.board.boardsManager;
+import ru.wo0t.smarthouse.common.constants;
 import ru.wo0t.smarthouse.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 
 /**
@@ -55,6 +64,12 @@ public class ShowPictureFullScreen extends Activity {
     /**
      * The instance of the {@link SystemUiHider} for this activity.
      */
+
+    private AbstractBoard mBoard = null;
+    private Sensor mSensor = null;
+    private Sensor.SENSOR_SYSTEM mSystem = Sensor.SENSOR_SYSTEM.CAMES;
+    private ProgressDialog mSensorUpdProcessDialog;
+
     private SystemUiHider mSystemUiHider;
 
     @Override
@@ -127,22 +142,34 @@ public class ShowPictureFullScreen extends Activity {
 
         Intent intent = getIntent();
         int boardId = intent.getIntExtra(boardsManager.BOARD_ID, -1);
-        AbstractBoard board = ((SMHZApp) getApplication()).getBoardsManager().getBoard(boardId);
-        if (board != null) {
+        mBoard = ((SMHZApp) getApplication()).getBoardsManager().getBoard(boardId);
+        if (mBoard != null) {
             if (!intent.getStringExtra(boardsManager.SENSOR_NAME).isEmpty()) {
-                Sensor sensor = board.getSens(intent.getStringExtra(boardsManager.SENSOR_NAME));
-                byte[] picData = (byte[])sensor.getVal();
-                Bitmap bMap = BitmapFactory.decodeByteArray(picData, 0, picData.length);
-
-                if (bMap != null) {
-                    ((ImageView) findViewById(R.id.fullscreenImageView)).setImageBitmap(bMap);
-                    ((ImageView) findViewById(R.id.fullscreenImageView)).setContentDescription(sensor.getName());
-                }
-
+                mSensor = mBoard.getSens(intent.getStringExtra(boardsManager.SENSOR_NAME));
             }
         }
+        updatePicture();
+
+        ((Button)findViewById(R.id.pictureRefresh)).setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBoard.updateSens(mSensor);
+                updateSensDialog();
+            }
+        });
     }
 
+    private void updatePicture() {
+        if (mBoard == null || mSensor == null) return;
+
+        byte[] picData = (byte[])mSensor.getVal();
+        Bitmap bMap = BitmapFactory.decodeByteArray(picData, 0, picData.length);
+
+        if (bMap != null) {
+            ((ImageView) findViewById(R.id.fullscreenImageView)).setImageBitmap(bMap);
+            ((ImageView) findViewById(R.id.fullscreenImageView)).setContentDescription(mSensor.getName());
+        }
+    }
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -185,5 +212,56 @@ public class ShowPictureFullScreen extends Activity {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
+
+    protected boolean updateSensDialog() {
+        if (mSensor == null) return false;
+
+        mSensorUpdProcessDialog = new ProgressDialog(this);
+        mSensorUpdProcessDialog.setMessage(getString(R.string.sensUpdating) + "'" + mSensor.getName()+"'");
+        mSensorUpdProcessDialog.show();
+
+        return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter iff= new IntentFilter(boardsManager.MSG_SENSOR_DATA);
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(onNotice, iff);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(onNotice);
+    }
+
+    private final BroadcastReceiver onNotice= new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int boardId = intent.getIntExtra(boardsManager.BOARD_ID, -1);
+            Sensor.SENSOR_SYSTEM system = Sensor.SENSOR_SYSTEM.valueOf(intent.getStringExtra(boardsManager.MSG_SYSTEM_NAME));
+
+            if (boardId == mBoard.getBoardId()) {
+                switch (intent.getAction()) {
+                    case boardsManager.MSG_SENSOR_DATA: {
+                        if (mSystem == system) {
+                            String sName = intent.getStringExtra(boardsManager.SENSOR_NAME);
+
+                            if ((mSensor != null) && (mSensorUpdProcessDialog != null)) {
+                                if (mSensor.getName().equals(sName)) {
+                                    mSensorUpdProcessDialog.dismiss();
+                                    mSensorUpdProcessDialog = null;
+                                    updatePicture();
+                                }
+                            }
+                        }
+                    } break;
+                }
+            }
+        }
+
+    };
 
 }
