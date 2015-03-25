@@ -148,7 +148,7 @@ public class boardsDiscoverer extends AsyncTask<Object, Void, Boolean> {
                         String reply = new String(buf,0,pkt.getLength());
                         JSONObject jObjectData = new JSONObject(reply);
                         if (!jObjectData.getString("id").equals(constants.LOCAL_BOARD_KEYWORD)) continue;    // if non-board response - continue receiving...
-                        if (!jObjectData.has("board_id")) continue; // out request without board_id, skip it
+                        if (!jObjectData.has("board_id")) continue; // our request without board_id, skip it
                         Bundle args = new Bundle();
                         args.putInt(boardsManager.BOARD_ID, jObjectData.getInt("board_id"));
                         args.putString(boardsManager.BOARD_DESCR, pkt.getAddress().getHostAddress());

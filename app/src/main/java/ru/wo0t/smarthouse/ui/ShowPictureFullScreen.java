@@ -160,7 +160,7 @@ public class ShowPictureFullScreen extends Activity {
     }
 
     private void updatePicture() {
-        if (mBoard == null || mSensor == null) return;
+        if (mBoard == null || mSensor == null || mSensor.getVal() == null) return;
 
         byte[] picData = (byte[])mSensor.getVal();
         Bitmap bMap = BitmapFactory.decodeByteArray(picData, 0, picData.length);

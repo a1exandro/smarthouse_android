@@ -243,7 +243,7 @@ public class boardsManager {
         AbstractBoard board = mActiveBoards.get(board_id);
         board.close();
         mActiveBoards.remove(board_id);
-        Log.d(constants.APP_TAG, "Close board requested: " + board.mBoardName);
+        Log.d(constants.APP_TAG, "Board closing requested: " + board.mBoardName);
     }
 
     public AbstractBoard getBoard(int aBoardId) {

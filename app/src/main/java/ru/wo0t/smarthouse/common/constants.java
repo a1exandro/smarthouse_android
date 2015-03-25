@@ -24,7 +24,7 @@ public interface constants {
 
     public static final int LOCAL_BOARD_PORT = 1352;
     public static final int BOARD_LOOKUP_TIMEOUT = 5000;
-    public static final int LOCAL_BOARD_RECONNECT_TIME = 5000;
+    public static final int LOCAL_BOARD_RECONNECT_TIME = 10000;
     public static final int REMOTE_BOARD_WAIT_PERIOD = 10000;
 
     public static final int REQUEST_CODE_GET_BOARD = 1;

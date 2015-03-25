@@ -94,7 +94,7 @@ public class LocalBoard extends AbstractBoard {
         {
             while (!this.isInterrupted())
             {
-                while (!connectToHost(mHost, mPort))
+                while (!connectToHost(mHost, mPort) && !this.isInterrupted())
                 {
                     try {
                         Thread.sleep(constants.LOCAL_BOARD_RECONNECT_TIME);
@@ -103,7 +103,7 @@ public class LocalBoard extends AbstractBoard {
                         e.printStackTrace();
                     }
                 }
-                while (mSock != null && mSock.isConnected())
+                while (mSock != null && mSock.isConnected() && !this.isInterrupted())
                 {
                     try {
                         InputStream in = mSock.getInputStream();
@@ -111,10 +111,17 @@ public class LocalBoard extends AbstractBoard {
 
                         if (dis.available() > 0) {
                             int len = dis.readInt();
+                            int extraLen = dis.readInt();
                             byte[] buf = new byte[len];
                             if (len > 0) {
                                 dis.readFully(buf);
-                                messageParser(new String(buf), null);
+                                byte[] extraBuf = null;
+                                if (extraLen > 0) {
+                                    extraBuf = new byte[extraLen];
+                                    dis.readFully(extraBuf);
+                                }
+
+                                messageParser(new String(buf), extraBuf);
                             }
                         }
 

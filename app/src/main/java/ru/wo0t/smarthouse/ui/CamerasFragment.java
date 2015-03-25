@@ -42,17 +42,21 @@ public class CamerasFragment extends BasePageFragment {
 
         if (sensor != null) {
             try {
-
-                if (sensor.getVal() != null) {
+                Bitmap bMap;
+                if (sensor.getVal() != null && false) {
                     byte[] picData = (byte[])sensor.getVal();
-                    Bitmap bMap = BitmapFactory.decodeByteArray( picData, 0, picData.length );
-
-                    if (bMap != null) {
-                        ((ImageView) view.findViewById(R.id.itemCameraPicture)).setImageBitmap(bMap);
-                        ((ImageView) view.findViewById(R.id.itemCameraPicture)).setContentDescription(sensor.getName());
-                        ((TextView) view.findViewById(R.id.itemCameraDescr)).setText(sensor.getName());
-                    }
+                    bMap = BitmapFactory.decodeByteArray( picData, 0, picData.length );
                 }
+                else
+                    bMap = BitmapFactory.decodeResource(getActivity().getResources(),R.drawable.img_photo_not_available);
+
+                if (bMap != null) {
+                    ((ImageView) view.findViewById(R.id.itemCameraPicture)).setImageBitmap(bMap);
+                    ((ImageView) view.findViewById(R.id.itemCameraPicture)).setContentDescription(sensor.getName());
+                    ((TextView) view.findViewById(R.id.itemCameraDescr)).setText(sensor.getName());
+                }
+
+
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -85,7 +89,8 @@ public class CamerasFragment extends BasePageFragment {
         lvMain.setOnItemLongClickListener( new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-
+                Sensor sensor = (Sensor)parent.getItemAtPosition(position);
+                onItemSelected(sensor);
                 return false;
             }
         });
