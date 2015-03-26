@@ -6,7 +6,11 @@ package ru.wo0t.smarthouse;
 
 
 import android.app.Application;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 
 import ru.wo0t.smarthouse.board.boardsManager;
 
@@ -20,8 +24,8 @@ public class SMHZApp extends Application {
 
     @Override
     public void onCreate() {
-        super.onCreate();
-        mBoardsManager = new boardsManager(this);
+        Intent intent = new Intent(this, boardsManager.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     public void setMainActivityVisibility(boolean visible) { mIsMainActivityVisible = visible; }
@@ -43,4 +47,20 @@ public class SMHZApp extends Application {
 
     public void setMainActivity(Context context) { mMainActivity = context; }
     public Context getMainActivity() { return mMainActivity; }
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            boardsManager.LocalBinder binder = (boardsManager.LocalBinder) service;
+            mBoardsManager = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+
+        }
+    };
+
 }

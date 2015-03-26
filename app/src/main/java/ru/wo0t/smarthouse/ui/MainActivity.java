@@ -35,8 +35,9 @@ public class MainActivity extends FragmentActivity {
 
         Log.d(constants.APP_TAG,"Starting the program");
 
-       /* try {
-            Thread.sleep(5000);     // wait for emulator
+        /*
+        try {
+            Thread.sleep(1000);     // wait for emulator
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -56,8 +57,6 @@ public class MainActivity extends FragmentActivity {
                     startActivityForResult(intent, constants.REQUEST_CODE_GET_BOARD);
                 } else {
                     mBoardId = defaultBoard;
-                    ((SMHZApp) getApplication()).setBoardId(mBoardId);
-                    ((SMHZApp) getApplication()).getBoardsManager().connectToDefaultBoard();
                 }
 
             } catch (Exception e) {
@@ -115,7 +114,6 @@ public class MainActivity extends FragmentActivity {
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }

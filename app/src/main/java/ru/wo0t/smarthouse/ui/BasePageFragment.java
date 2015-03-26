@@ -39,7 +39,10 @@ abstract public class BasePageFragment extends Fragment{
     abstract View getLWItemView(int position, View convertView, ViewGroup parent);
 
     protected AbstractBoard getBoard() {
-        return ((SMHZApp) getActivity().getApplication()).getBoardsManager().getBoard(getBoardId());
+        boardsManager bm = ((SMHZApp) getActivity().getApplication()).getBoardsManager();
+        if (bm != null) return bm.getBoard(getBoardId());
+            else
+        return null;
     }
     @Override
     public void onCreate(Bundle savedInstanceState) {

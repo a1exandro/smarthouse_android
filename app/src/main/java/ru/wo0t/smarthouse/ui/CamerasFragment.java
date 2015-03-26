@@ -43,7 +43,7 @@ public class CamerasFragment extends BasePageFragment {
         if (sensor != null) {
             try {
                 Bitmap bMap;
-                if (sensor.getVal() != null && false) {
+                if (sensor.getVal() != null) {
                     byte[] picData = (byte[])sensor.getVal();
                     bMap = BitmapFactory.decodeByteArray( picData, 0, picData.length );
                 }
