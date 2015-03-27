@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 
 import android.util.Log;
@@ -23,6 +24,10 @@ import ru.wo0t.smarthouse.board.boardsManager;
 import ru.wo0t.smarthouse.common.constants;
 
 public class MainActivity extends FragmentActivity {
+
+    public static final String MSG_MAIN_ACTIVITY_PAUSE = "MSG_MAIN_ACTIVITY_PAUSE";
+    public static final String MSG_MAIN_ACTIVITY_RESUME = "MSG_MAIN_ACTIVITY_RESUME";
+
     PagerAdapter mPagerAdapter;
     ViewPager mViewPager;
 
@@ -141,12 +146,14 @@ public class MainActivity extends FragmentActivity {
     protected void onResume() {
         super.onResume();
         ((SMHZApp) getApplication()).setMainActivityVisibility(true);
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent(MSG_MAIN_ACTIVITY_RESUME));
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         ((SMHZApp) getApplication()).setMainActivityVisibility(false);
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent(MSG_MAIN_ACTIVITY_PAUSE));
     }
 
     @Override

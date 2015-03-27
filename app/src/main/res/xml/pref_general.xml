@@ -6,7 +6,7 @@
     <ListPreference
         android:key="refresh_interval"
         android:title="@string/pref_title_refresh_period"
-        android:defaultValue="10"
+        android:defaultValue="300"
         android:entries="@array/pref_refresh_sensors_titles"
         android:entryValues="@array/pref_refresh_sensors_values"
         android:negativeButtonText="@null"

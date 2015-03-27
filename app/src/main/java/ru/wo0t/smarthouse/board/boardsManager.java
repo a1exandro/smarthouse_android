@@ -62,7 +62,7 @@ public class boardsManager extends Service {
     private boardsDiscoverer mBrdDiscover;
 
     private int mNotificationsCount = 1;
-
+    private boolean mIsInitialized = false;
     private final IBinder mBinder = new LocalBinder();
 
     public class LocalBinder extends Binder {
@@ -73,19 +73,21 @@ public class boardsManager extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        if (mActiveBoards.size() == 0) onServeceInit();
+        if (!mIsInitialized) InitService();
         return mBinder;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        onServeceInit();
+        if (!mIsInitialized) InitService();
         return super.onStartCommand(intent, flags, startId);
     }
 
-    public void onServeceInit()
+    public void InitService()
     {
+        synchronized (this) { mIsInitialized = true; }
+
         IntentFilter iff= new IntentFilter(MSG_BOARD_CONNECTED);
         iff.addAction(MSG_BOARD_DISCONNECTED);
         iff.addAction(SENSOR_VALUE_OUT_OF_RANGE);

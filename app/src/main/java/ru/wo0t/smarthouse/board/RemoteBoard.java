@@ -1,6 +1,8 @@
 package ru.wo0t.smarthouse.board;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 
@@ -173,20 +175,33 @@ public class RemoteBoard extends AbstractBoard {
 
             while (!this.isInterrupted())
             {
-                boolean sendOk = false;
+                boolean isSentOk = false;
                 if (mOutQueue.size() > 0) {
                     while (mOutQueue.size() > 0) {
                         outMsg msg = mOutQueue.poll();
-                        sendOk = write(msg.cmd, msg.data);
+                        isSentOk = write(msg.cmd, msg.data);
                     }
                 }
                 else
-                    sendOk = write("ping", new String().getBytes());
-                if (!sendOk && mOutQueue.size() == 0) {
-                    try {
-                        Thread.sleep(constants.REMOTE_BOARD_WAIT_PERIOD);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    isSentOk = write("ping", new String().getBytes());
+                if (!isSentOk) {  // if there were errors and have nothing more to send, go to sleep
+                    if (mOutQueue.size() == 0) {
+                        try {
+                            Thread.sleep(constants.REMOTE_BOARD_WAIT_PERIOD);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                else {  // if sent ok, check do we need to sleep
+                    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+                    int refresh_interval = pref.getInt("refresh_interval", 0);
+                    while (mIsSuspended && refresh_interval-- > 0) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -237,10 +252,9 @@ public class RemoteBoard extends AbstractBoard {
                                 String fullUrl = constants.REMOTE_BOARD_URL_HOST + "modules/camera/img/" + mBoardId + "/" + fName;
                                 InputStream input = downloadUrl(fullUrl," "," ");
 
-
                                 byte[] picData = new byte[mConn.getContentLength()];
 
-                                while ( (offset += input.read(picData,offset, mConn.getContentLength() - offset)) > 0);
+                                while ( (offset += input.read(picData,offset, mConn.getContentLength() - offset)) > 0){}
                                 eData = picData;
                             }
                             break;

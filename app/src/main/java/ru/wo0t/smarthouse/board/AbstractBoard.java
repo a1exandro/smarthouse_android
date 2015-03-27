@@ -1,8 +1,10 @@
 package ru.wo0t.smarthouse.board;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -15,6 +17,7 @@ import java.util.List;
 
 import ru.wo0t.smarthouse.R;
 import ru.wo0t.smarthouse.SMHZApp;
+import ru.wo0t.smarthouse.ui.MainActivity;
 
 /**
  * Created by alex on 2/9/15.
@@ -34,8 +37,11 @@ abstract public class AbstractBoard {
     protected List<Sensor>mSensors;
     protected String mBoardName;
     protected int mBoardId;
-    private Context mContext;
+    protected boolean mIsSuspended = true;
+
+    protected Context mContext;
     private ProgressDialog mWaitCfgDialog;
+
 
     public AbstractBoard(Context context, BOARD_TYPE type, int id, String name) {
         mBoardType = type;
@@ -43,6 +49,10 @@ abstract public class AbstractBoard {
         mSensors = new ArrayList<>();
         mContext = context;
         mBoardName = name;
+
+        IntentFilter iff= new IntentFilter(MainActivity.MSG_MAIN_ACTIVITY_PAUSE);
+        iff.addAction(MainActivity.MSG_MAIN_ACTIVITY_RESUME);
+        LocalBroadcastManager.getInstance(context).registerReceiver(onNotice, iff);
 
         showWaitDlg(mContext.getString(R.string.loadingCfg));
     }
@@ -287,6 +297,22 @@ abstract public class AbstractBoard {
         closeWaitDlg();
     }
     protected void clear() { mSensors.clear(); }
+
+    BroadcastReceiver onNotice = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            switch (intent.getAction()) {
+                case MainActivity.MSG_MAIN_ACTIVITY_PAUSE: {
+                    mIsSuspended = true;
+                } break;
+                case MainActivity.MSG_MAIN_ACTIVITY_RESUME: {
+                    mIsSuspended = false;
+                } break;
+            }
+        }
+    };
 
     abstract public void sendPkt(byte[] data);
 }

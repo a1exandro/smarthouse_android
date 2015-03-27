@@ -95,7 +95,6 @@ public class CamerasFragment extends BasePageFragment {
             }
         });
 
-
         return rootView;
 
     }

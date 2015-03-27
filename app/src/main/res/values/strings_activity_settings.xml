@@ -3,20 +3,36 @@
 
     <string name="pref_header_general">Общие настройки</string>
     <string name="pref_title_refresh_period">Интервал обновления</string>
-    <string name="pref_descr_refresh_period">Интервал обновления датчиков</string>
+    <string name="pref_descr_refresh_period">Интервал обновления в спящем режиме</string>
     <string-array name="pref_refresh_sensors_titles">
+        <item>Без задержки</item>
         <item>10 сек</item>
         <item>30 сек</item>
         <item>1 мин</item>
         <item>2 мин</item>
+        <item>3 мин</item>
         <item>5 мин</item>
+        <item>10 мин</item>
+        <item>15 мин</item>
+        <item>20 мин</item>
+        <item>30 мин</item>
+        <item>1 час</item>
+        <item>3 часа</item>
     </string-array>
     <string-array name="pref_refresh_sensors_values">
+        <item>0</item>
         <item>10</item>
         <item>30</item>
         <item>60</item>
         <item>120</item>
+        <item>180</item>
         <item>300</item>
+        <item>600</item>
+        <item>900</item>
+        <item>1200</item>
+        <item>1800</item>
+        <item>3600</item>
+        <item>10800</item>
     </string-array>
 
     <string name="pref_header_remote_access">Удаленный доступ</string>
