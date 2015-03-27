@@ -195,7 +195,7 @@ public class RemoteBoard extends AbstractBoard {
                 }
                 else {  // if sent ok, check do we need to sleep
                     SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-                    int refresh_interval = pref.getInt("refresh_interval", 0);
+                    int refresh_interval = Integer.valueOf(pref.getString("refresh_interval","0"));
                     while (mIsSuspended && refresh_interval-- > 0) {
                         try {
                             Thread.sleep(1000);

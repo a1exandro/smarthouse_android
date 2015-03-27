@@ -1,9 +1,11 @@
 package ru.wo0t.smarthouse.board;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.DataInputStream;
@@ -96,11 +98,25 @@ public class LocalBoard extends AbstractBoard {
             {
                 while (!connectToHost(mHost, mPort) && !this.isInterrupted())
                 {
-                    try {
-                        Thread.sleep(constants.LOCAL_BOARD_RECONNECT_TIME);
+                    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+                    int refresh_interval = Integer.valueOf(pref.getString("refresh_interval","0"));
+                    if (mIsSuspended) {
+                        while (mIsSuspended && refresh_interval-- > 0 && !this.isInterrupted()) {    // if we are suspended, sleep before next reconnect
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    else {  // if we are not suspended, just wait and reconnect
+                        try {
+                            Thread.sleep(constants.LOCAL_BOARD_RECONNECT_TIME);
 
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        } catch (InterruptedException e) {
+
+                            e.printStackTrace();
+                        }
                     }
                 }
                 while (mSock != null && mSock.isConnected() && !this.isInterrupted())

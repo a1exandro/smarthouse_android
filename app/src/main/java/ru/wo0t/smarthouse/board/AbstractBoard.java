@@ -54,6 +54,8 @@ abstract public class AbstractBoard {
         iff.addAction(MainActivity.MSG_MAIN_ACTIVITY_RESUME);
         LocalBroadcastManager.getInstance(context).registerReceiver(onNotice, iff);
 
+        mIsSuspended = !((SMHZApp) mContext.getApplicationContext()).isMainActivityVisible();
+
         showWaitDlg(mContext.getString(R.string.loadingCfg));
     }
 
