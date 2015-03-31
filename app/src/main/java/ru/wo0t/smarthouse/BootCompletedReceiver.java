@@ -15,9 +15,7 @@ public class BootCompletedReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent arg1) {
-        Log.e(constants.APP_TAG, "starting service...");
-        Intent pushIntent = new Intent(context, boardsManager.class);
-        context.startService(pushIntent);
+        Log.d(constants.APP_TAG, "Starting service...");
     }
 
 }

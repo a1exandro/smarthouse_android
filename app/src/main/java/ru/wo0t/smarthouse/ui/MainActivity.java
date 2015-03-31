@@ -2,7 +2,10 @@ package ru.wo0t.smarthouse.ui;
 
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
@@ -38,22 +41,15 @@ public class MainActivity extends FragmentActivity {
 
         setContentView(R.layout.activity_main);
 
-        Log.d(constants.APP_TAG,"Starting the program");
-
-        /*
-        try {
-            Thread.sleep(1000);     // wait for emulator
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }*/
-
         mBoardId = ((SMHZApp) getApplication()).getBoardId();
-        ((SMHZApp) getApplication()).setMainActivity(this);
-
 
         if (mBoardId == -1) {
             try {
+                IntentFilter iff= new IntentFilter(boardsManager.MSG_SERVICE_BOUND);
+                LocalBroadcastManager.getInstance(this).registerReceiver(onNotice, iff);
+                ((SMHZApp) getApplication()).setMainActivity(this);
+                ((SMHZApp) getApplication()).bindToService();
+
                 SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 int defaultBoard = pref.getInt(boardsManager.BOARD_ID, -1);
 
@@ -70,14 +66,19 @@ public class MainActivity extends FragmentActivity {
         }
 
         configureActionBar();
+        changePageToActiveSens();
+    }
+
+    private void changePageToActiveSens() {
         Intent intent = getIntent();
         String sensOutOfRangeName = intent.getStringExtra(boardsManager.SENSOR_NAME);
-        if (sensOutOfRangeName != null && mBoardId != -1) {
+
+        if (sensOutOfRangeName != null && mBoardId != -1 && ((SMHZApp)getApplication()).getBoardsManager() != null) {
             Sensor sensor = ((SMHZApp)getApplication()).getBoardsManager().getBoard(mBoardId).getSens(sensOutOfRangeName);
+            sensor.setNotified(false);
             mViewPager.setCurrentItem(mPagerAdapter.getSystemIndex(sensor.getSystem()));
         }
     }
-
     private void configureActionBar() {
         final ActionBar actionBar = getActionBar();
 
@@ -203,5 +204,20 @@ public class MainActivity extends FragmentActivity {
         }
 
     }
+    BroadcastReceiver onNotice = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            switch (intent.getAction()) {
+                case boardsManager.MSG_SERVICE_BOUND: {
+                    Log.d(constants.APP_TAG, "MainActivity: bound to service");
+                    mBoardId = ((SMHZApp) getApplication()).getBoardId();
+                    mPagerAdapter.changeBoard(mBoardId);
+                    changePageToActiveSens();
+                }
+            }
+        }
+    };
 }
 

@@ -56,7 +56,7 @@ abstract public class AbstractBoard {
 
         mIsSuspended = !((SMHZApp) mContext.getApplicationContext()).isMainActivityVisible();
 
-        showWaitDlg(mContext.getString(R.string.loadingCfg));
+        //showWaitDlg(mContext.getString(R.string.loadingCfg));
     }
 
     private boolean showWaitDlg(String text) {

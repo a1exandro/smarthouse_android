@@ -58,6 +58,8 @@ public class boardsManager extends Service {
     public static final String SENSOR_NAME = "SENSOR_NAME";
     public static final String SENSOR_VALUE_OUT_OF_RANGE = "SENSOR_VALUE_OUT_OF_RANGE";
 
+    public static final String MSG_SERVICE_BOUND = "MSG_SERVICE_BOUND";
+
     private ArrayMap<Integer,AbstractBoard> mActiveBoards;
     private boardsDiscoverer mBrdDiscover;
 
@@ -79,7 +81,6 @@ public class boardsManager extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
         if (!mIsInitialized) InitService();
         return super.onStartCommand(intent, flags, startId);
     }
@@ -103,6 +104,7 @@ public class boardsManager extends Service {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
             int boardId = pref.getInt(boardsManager.BOARD_ID, -1);
             if (boardId == -1) return;
+            ((SMHZApp) getApplication()).setBoardId(boardId);
             AbstractBoard.BOARD_TYPE boardType = AbstractBoard.BOARD_TYPE.valueOf(pref.getString(BOARD_TYPE, ""));
             String boardName = pref.getString(BOARD_DESCR,"");
             Log.d(constants.APP_TAG, "Connection to default board requested: " + boardName);
@@ -210,7 +212,7 @@ public class boardsManager extends Service {
                 case SENSOR_VALUE_OUT_OF_RANGE: {
                     try {
                         String sensName = intent.getStringExtra(SENSOR_NAME);
-
+                        board.getSens(sensName).setNotified(false);
                         final long[] SENS_OUT_OF_RANGE_VIBRATE = new long[]{1000, 1000, 1000};
 
                         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
