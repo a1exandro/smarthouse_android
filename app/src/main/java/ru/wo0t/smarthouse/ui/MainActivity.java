@@ -42,13 +42,13 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
 
         mBoardId = ((SMHZApp) getApplication()).getBoardId();
+        ((SMHZApp) getApplication()).bindToService();
 
         if (mBoardId == -1) {
             try {
                 IntentFilter iff= new IntentFilter(boardsManager.MSG_SERVICE_BOUND);
                 LocalBroadcastManager.getInstance(this).registerReceiver(onNotice, iff);
                 ((SMHZApp) getApplication()).setMainActivity(this);
-                ((SMHZApp) getApplication()).bindToService();
 
                 SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 int defaultBoard = pref.getInt(boardsManager.BOARD_ID, -1);
