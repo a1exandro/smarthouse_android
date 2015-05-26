@@ -136,7 +136,7 @@ public class LocalBoard extends AbstractBoard {
                                     extraBuf = new byte[extraLen];
                                     dis.readFully(extraBuf);
                                 }
-
+                                setLastActivity((int)(System.currentTimeMillis()/1000));
                                 messageParser(new String(buf), extraBuf);
                             }
                         }

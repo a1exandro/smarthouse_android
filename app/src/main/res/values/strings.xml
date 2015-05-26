@@ -33,4 +33,8 @@
     <string name="title_activity_edit_sens">Редактирование</string>
     <string name="title_activity_show_picture_full_screen">Фото с камеры</string>
     <string name="refresh">Обновить</string>
+    <string name="lastActivity">Последняя активность</string>
+    <string name="boardState">Состояние</string>
+    <string name="boardConnected">Подключен</string>
+    <string name="boardDisconnected">Отключен</string>
 </resources>

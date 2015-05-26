@@ -88,7 +88,9 @@ public class InfoFragment extends BasePageFragment {
                 mKeys.add(getString(R.string.user_name));
             }
             mKeys.add(getString(R.string.boardId));
-            
+            mKeys.add(getString(R.string.lastActivity));
+            mKeys.add(getString(R.string.boardState));
+
             for (int i = 0; i < mKeys.size(); i++) {
                 String key = mKeys.get(i);
                 String val = key;
@@ -102,7 +104,14 @@ public class InfoFragment extends BasePageFragment {
                         val = getString(R.string.localBoard);
                 }
                 if (key.equals(getString(R.string.user_name))) val = ((RemoteBoard)board).getLogin();
-
+                if (key.equals(getString(R.string.lastActivity))) val = board.getLastActivityString();
+                if (key.equals(getString(R.string.boardState))) {
+                    AbstractBoard.BOARD_STATE state = board.getBoardState();
+                    if (state == AbstractBoard.BOARD_STATE.CONNECTED)
+                        val = getString(R.string.boardConnected);
+                    else
+                        val = getString(R.string.boardDisconnected);
+                }
                 mItems.put(key,val);
             }
 

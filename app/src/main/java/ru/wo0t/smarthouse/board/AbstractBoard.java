@@ -12,7 +12,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import ru.wo0t.smarthouse.R;
@@ -31,8 +34,8 @@ abstract public class AbstractBoard {
     protected static final String SWITCHES_CFG_REQ = SYSTEM_SWITCHES +" get cfg;";
     protected static final String CAME_CFG_REQ = SYSTEM_CAME +" get cfg;";
 
-    public static enum BOARD_TYPE {LOCAL, REMOTE}
-
+    public enum BOARD_TYPE {LOCAL, REMOTE}
+    public enum BOARD_STATE {DISCONNECTED, CONNECTED}
     protected BOARD_TYPE mBoardType;
     protected List<Sensor>mSensors;
     protected String mBoardName;
@@ -41,7 +44,8 @@ abstract public class AbstractBoard {
 
     protected Context mContext;
     private ProgressDialog mWaitCfgDialog;
-
+    private int mLastActivity;
+    private BOARD_STATE mState;
 
     public AbstractBoard(Context context, BOARD_TYPE type, int id, String name) {
         mBoardType = type;
@@ -55,6 +59,7 @@ abstract public class AbstractBoard {
         LocalBroadcastManager.getInstance(context).registerReceiver(onNotice, iff);
 
         mIsSuspended = !((SMHZApp) mContext.getApplicationContext()).isMainActivityVisible();
+        mState = BOARD_STATE.DISCONNECTED;
 
         //showWaitDlg(mContext.getString(R.string.loadingCfg));
     }
@@ -143,6 +148,7 @@ abstract public class AbstractBoard {
     protected void onBoardConnected() {
         sendBroadcastMsg(boardsManager.MSG_BOARD_CONNECTED);
         sendPkt(new String(SENSORS_CFG_REQ + SWITCHES_CFG_REQ + CAME_CFG_REQ).getBytes());
+        mState = BOARD_STATE.CONNECTED;
     }
 
     private void sendBroadcastMsg(String event) {
@@ -293,13 +299,41 @@ abstract public class AbstractBoard {
         sendPkt(cmd.getBytes());
     }
 
+    protected void setLastActivity(int lastAct) {
+        synchronized (this) {
+            mLastActivity = lastAct;
+        }
+        sendBroadcastMsg(boardsManager.MSG_BOARD_PING);
+    }
+    public int getLastActivity() {
+        int lastAct;
+        synchronized (this) {
+            lastAct = mLastActivity;
+        }
+        return lastAct;
+    }
+
+    public String getLastActivityString() {
+        DateFormat s =  DateFormat.getDateTimeInstance();
+        Date lastActDate = new Date((long)getLastActivity()*1000);
+        return s.format(lastActDate);
+    }
+
     protected void close() {
         sendBroadcastMsg(boardsManager.MSG_BOARD_DISCONNECTED);
         clear();
         closeWaitDlg();
     }
+
     protected void clear() { mSensors.clear(); }
 
+    public BOARD_STATE getBoardState() {
+        BOARD_STATE state;
+        synchronized (this) {
+            state = mState;
+        }
+        return state;
+    }
     BroadcastReceiver onNotice = new BroadcastReceiver() {
 
         @Override

@@ -67,7 +67,9 @@ public class MainActivity extends FragmentActivity {
 
         configureActionBar();
         changePageToActiveSens();
+        mPagerAdapter.notifyDataSetChanged();
     }
+
 
     private void changePageToActiveSens() {
         Intent intent = getIntent();
@@ -173,23 +175,10 @@ public class MainActivity extends FragmentActivity {
                             mBoardId = -1;
                         }
 
-                        AbstractBoard.BOARD_TYPE boardType = AbstractBoard.BOARD_TYPE.valueOf(data.getStringExtra(boardsManager.BOARD_TYPE));
                         int boardId = data.getIntExtra(boardsManager.BOARD_ID, -1);
 
-                        // connect to remote board
-                        if (boardType == AbstractBoard.BOARD_TYPE.REMOTE) {
+                        ((SMHZApp) getApplication()).getBoardsManager().connectToBoard(data);
 
-                            String login = data.getStringExtra(boardsManager.BOARD_LOGIN);
-                            String pw = data.getStringExtra(boardsManager.BOARD_PW);
-
-                            ((SMHZApp) getApplication()).getBoardsManager().connectToRemoteBoard(boardId, boardDscr, login, pw);
-                        }
-                        // connect to local board
-                        else {
-                            String ipAddr = data.getStringExtra(boardsManager.BOARD_IP_ADDR);
-
-                            ((SMHZApp) getApplication()).getBoardsManager().connectToLocalBoard(boardId, boardDscr, ipAddr);
-                        }
                         mBoardId = boardId;
                         mPagerAdapter.changeBoard(boardId);
                         ((SMHZApp) getApplication()).setBoardId(mBoardId);
@@ -215,6 +204,7 @@ public class MainActivity extends FragmentActivity {
                     mBoardId = ((SMHZApp) getApplication()).getBoardId();
                     mPagerAdapter.changeBoard(mBoardId);
                     changePageToActiveSens();
+                    mPagerAdapter.notifyDataSetChanged();
                 }
             }
         }

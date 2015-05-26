@@ -78,7 +78,11 @@ abstract public class BasePageFragment extends Fragment{
         return true;
     }
     
-    public void changeBoard(int aBoardId) { mBoardId = aBoardId; }
+    public void changeBoard(int aBoardId) {
+        mBoardId = aBoardId;
+        if (mAdapter != null)
+            mAdapter.notifyDataSetChanged();
+    }
 
     public int getBoardId() { return mBoardId; }
 
@@ -89,6 +93,7 @@ abstract public class BasePageFragment extends Fragment{
         iff.addAction(boardsManager.MSG_SENSOR_DATA);
         iff.addAction(boardsManager.MSG_BOARD_DISCONNECTED);
         iff.addAction(boardsManager.MSG_BOARD_CONNECTED);
+        iff.addAction(boardsManager.MSG_BOARD_PING);
         LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).registerReceiver(onNotice, iff);
     }
 
@@ -114,6 +119,11 @@ abstract public class BasePageFragment extends Fragment{
                     case boardsManager.MSG_BOARD_DISCONNECTED: {    // TODO: why i don't receive this fucking message?
                         mAdapter.update();
 
+                    } break;
+                    case boardsManager.MSG_BOARD_PING: {
+                        if (mSystem.equals(context.getString(R.string.systemNameINFO))) {
+                            mAdapter.update();
+                        }
                     } break;
                     case boardsManager.MSG_BOARD_CFG_CHANGED: {
                         if ((mSystem.equals(context.getString(R.string.systemNameINFO))) || (mSystem.equals(system))) {

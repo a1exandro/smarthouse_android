@@ -37,6 +37,7 @@ public class SMHZApp extends Application {
         super.onTerminate();
         Intent intent = new Intent(this, boardsManager.class);
         stopService(intent);
+        Log.d(constants.APP_TAG, "Terminating program...");
     }
 
     public void bindToService() {
@@ -80,11 +81,12 @@ public class SMHZApp extends Application {
 
             Intent intent = new Intent(boardsManager.MSG_SERVICE_BOUND);
             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+            Log.d(constants.APP_TAG, "connected to service");
         }
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
-
+            Log.d(constants.APP_TAG, "disconnected from service");
         }
     };
 

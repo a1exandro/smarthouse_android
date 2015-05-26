@@ -278,6 +278,9 @@ public class RemoteBoard extends AbstractBoard {
 
                 if (jObj.has("lastMsgId"))
                     mLastMsgId = jObj.getInt("lastMsgId");
+                if (jObj.has("lastActivity"))
+                    setLastActivity(jObj.getInt("lastActivity"));
+
                 if (jObj.has("cmd")) {
                     switch (jObj.getString("cmd")) {
                         case "register":

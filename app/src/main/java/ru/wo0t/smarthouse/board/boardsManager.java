@@ -40,10 +40,12 @@ public class boardsManager extends Service {
     public static final String MSG_BOARD_DISCONNECTED = "MSG_BOARD_DISCONNECTED";
     public static final String MSG_BOARD_NEW_MESSAGE = "MSG_BOARD_NEW_MESSAGE";
     public static final String MSG_BOARD_CFG_CHANGED = "MSG_BOARD_CFG_CHANGED";
+    public static final String MSG_BOARD_PING = "MSG_BOARD_PING";
     public static final String MSG_SENSOR_DATA = "MSG_SENSOR_DATA";
     public static final String MSG_FOUND_NEW_BOARD = "MSG_FOUND_NEW_BOARD";
     public static final String MSG_BOARDS_DISCOVERY_FINISHED = "MSG_BOARDS_DISCOVERY_FINISHED";
     public static final String MSG_SYSTEM_NAME = "MSG_SYSTEM_NAME";
+
 
     public static final String BOARD_ID = "BOARD_ID";
     public static final String BOARD_TYPE = "BOARD_TYPE";
@@ -75,19 +77,22 @@ public class boardsManager extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        Log.d(constants.APP_TAG, "boardsManager onBind()");
         if (!mIsInitialized) InitService();
         return mBinder;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(constants.APP_TAG, "boardsManager onStartCommand()");
         if (!mIsInitialized) InitService();
         return super.onStartCommand(intent, flags, startId);
     }
 
+
     public void InitService()
     {
-        synchronized (this) { mIsInitialized = true; }
+        mIsInitialized = true;
 
         IntentFilter iff= new IntentFilter(MSG_BOARD_CONNECTED);
         iff.addAction(MSG_BOARD_DISCONNECTED);
@@ -135,12 +140,13 @@ public class boardsManager extends Service {
         mBrdDiscover.close();
         mBrdDiscover.cancel(false);
     }
+
     public void lookUpForBoards(int remotePort, String login, String password) {
         mBrdDiscover = new boardsDiscoverer(this, boardsDiscoverer.LOOKUP_ALL_BOARDS);
         mBrdDiscover.execute(remotePort, login, password);
     }
 
-    public void connectToLocalBoard(int board_id, String board_name, String ip_addr) {
+    private void connectToLocalBoard(int board_id, String board_name, String ip_addr) {
         try {
             AbstractBoard board = new LocalBoard(this, AbstractBoard.BOARD_TYPE.LOCAL, board_id, board_name, ip_addr);
             mActiveBoards.put(board_id, board);
@@ -149,12 +155,33 @@ public class boardsManager extends Service {
         }
     }
 
-    public void connectToRemoteBoard(int board_id, String board_name, String login, String password) {
+    private void connectToRemoteBoard(int board_id, String board_name, String login, String password) {
         try {
             AbstractBoard board = new RemoteBoard(this, AbstractBoard.BOARD_TYPE.REMOTE,board_id,board_name,login,password);
             mActiveBoards.put(board_id, board);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void connectToBoard(Intent data) {
+        int boardId = data.getIntExtra(boardsManager.BOARD_ID, -1);
+        String boardDscr = data.getStringExtra(boardsManager.BOARD_DESCR);
+        AbstractBoard.BOARD_TYPE boardType = AbstractBoard.BOARD_TYPE.valueOf(data.getStringExtra(boardsManager.BOARD_TYPE));
+
+        // connect to remote board
+        if (boardType == AbstractBoard.BOARD_TYPE.REMOTE) {
+
+            String login = data.getStringExtra(boardsManager.BOARD_LOGIN);
+            String pw = data.getStringExtra(boardsManager.BOARD_PW);
+
+            ((SMHZApp) getApplication()).getBoardsManager().connectToRemoteBoard(boardId, boardDscr, login, pw);
+        }
+        // connect to local board
+        else {
+            String ipAddr = data.getStringExtra(boardsManager.BOARD_IP_ADDR);
+
+            ((SMHZApp) getApplication()).getBoardsManager().connectToLocalBoard(boardId, boardDscr, ipAddr);
         }
     }
 
@@ -203,7 +230,9 @@ public class boardsManager extends Service {
                         pref.edit().putString(BOARD_LOGIN, login).apply();
                         pref.edit().putString(BOARD_PW, password).apply();
                     }
-                    Toast.makeText(getApplicationContext(), getString(R.string.successfullyConnectedToBoard) + "'" + boardName + "'", Toast.LENGTH_SHORT).show();
+                    if (((SMHZApp)getApplicationContext()).isMainActivityVisible()) {
+                        Toast.makeText(getApplicationContext(), getString(R.string.successfullyConnectedToBoard) + "'" + boardName + "'", Toast.LENGTH_SHORT).show();
+                    }
                 } break;
                 case MSG_BOARD_DISCONNECTED: {
                     String boardName = intent.getStringExtra(BOARD_DESCR);
